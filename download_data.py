@@ -6,17 +6,11 @@ import zipfile
 import requests
 import shutil
 
-def download_datasets():
+def download_datasets(file_id="1i4qVwj90w_uhBIwCGoJuI6gsXAcMtjgN", datasets_dir="./data/"):
     """
     Download datasets ZIP file from Google Drive and extract it.
     Removes existing datasets folder if it exists.
     """
-    
-    # Google Drive file ID extracted from your share link
-    file_id = "1i4qVwj90w_uhBIwCGoJuI6gsXAcMtjgN"
-    
-    # Define datasets directory
-    datasets_dir = "./data/"
     
     # Remove existing datasets folder if it exists
     if os.path.exists(datasets_dir):
@@ -145,3 +139,4 @@ def download_datasets():
 
 if __name__ == "__main__":
     download_datasets()
+    download_datasets(file_id="1HPsLnKsj-Lsqv1bXTMCRxZ8SNAHryTHp", datasets_dir="./save_model/")
