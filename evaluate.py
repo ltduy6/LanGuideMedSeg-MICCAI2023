@@ -32,6 +32,7 @@ if __name__ == '__main__':
     # load model
     model = LanGuideMedSegWrapper(args)
 
+    torch.serialization.add_safe_globals([config.CfgNode])
     checkpoint = torch.load('./save_model/medseg.ckpt',map_location='cpu')["state_dict"]
     model.load_state_dict(checkpoint,strict=True)
 
