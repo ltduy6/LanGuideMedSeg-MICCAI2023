@@ -32,7 +32,7 @@ class LanGuideMedSegWrapper(pl.LightningModule):
 
     def configure_optimizers(self):
 
-        optimizer = torch.optim.AdamW(self.model.parameters(),lr = self.hparams.lr)
+        optimizer = torch.optim.AdamW(self.model.parameters(),lr = self.lr)
         lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max =200, eta_min=1e-6)
 
         return {"optimizer":optimizer,"lr_scheduler":lr_scheduler}
