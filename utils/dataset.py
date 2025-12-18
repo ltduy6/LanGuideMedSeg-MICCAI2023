@@ -44,7 +44,7 @@ class QaTa(Dataset):
 
         image = os.path.join(self.root_path,'Images',self.image_list[idx].replace('mask_',''))
         gt = os.path.join(self.root_path,'Ground-truths', self.image_list[idx])
-        caption = self.caption_list[idx]
+        caption = self.caption_list[idx].split(',')[-1]  # get the last part as caption
 
         token_output = self.tokenizer.encode_plus(caption, padding='max_length',
                                                         max_length=24, 

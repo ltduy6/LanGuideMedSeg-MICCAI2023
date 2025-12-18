@@ -139,4 +139,4 @@ def download_datasets(file_id="1i4qVwj90w_uhBIwCGoJuI6gsXAcMtjgN", datasets_dir=
 
 if __name__ == "__main__":
     download_datasets()
-    download_datasets(file_id="1HPsLnKsj-Lsqv1bXTMCRxZ8SNAHryTHp", datasets_dir="./save_model/")
+    # download_datasets(file_id="1HPsLnKsj-Lsqv1bXTMCRxZ8SNAHryTHp", datasets_dir="./save_model/")
