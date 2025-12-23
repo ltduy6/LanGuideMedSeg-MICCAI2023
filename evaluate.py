@@ -9,6 +9,7 @@ import pytorch_lightning as pl
 
 from utils.dataset import QaTa
 import utils.config as config
+from utils.memory import Memory
 
 
 def get_parser():
@@ -30,10 +31,12 @@ if __name__ == '__main__':
     args = get_parser()
 
     # load model
-    model = LanGuideMedSegWrapper(args)
+    memory = Memory()
+    memory.load_memory(args.memory_path)
+    model = LanGuideMedSegWrapper(args, memory=memory)
 
     torch.serialization.add_safe_globals([config.CfgNode])
-    checkpoint = torch.load('./save_model/medseg.ckpt',map_location='cpu',weight_only=False)["state_dict"]
+    checkpoint = torch.load('./save_model/medseg-v5.ckpt',map_location='cpu',weights_only=False)["state_dict"]
     model.load_state_dict(checkpoint,strict=True)
 
     # dataloader

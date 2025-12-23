@@ -55,7 +55,7 @@ class VisionModel(nn.Module):
 
 class LanGuideMedSeg(nn.Module):
 
-    def __init__(self, bert_type, vision_type, project_dim=512):
+    def __init__(self, bert_type, vision_type, project_dim=512, memory=None):
 
         super(LanGuideMedSeg, self).__init__()
 
@@ -70,6 +70,8 @@ class LanGuideMedSeg(nn.Module):
         self.decoder4 = GuideDecoder(feature_dim[2],feature_dim[3],self.spatial_dim[2],9)
         self.decoder1 = SubpixelUpsample(2,feature_dim[3],24,4)
         self.out = UnetOutBlock(2, in_channels=24, out_channels=1)
+
+        self.memory = memory
 
     def forward(self, data):
 
@@ -87,9 +89,14 @@ class LanGuideMedSeg(nn.Module):
             image_features = [rearrange(item,'b c h w -> b (h w) c') for item in image_features] 
 
         os32 = image_features[3]
-        os16 = self.decoder16(os32,image_features[2], text_embeds[-1])
-        os8 = self.decoder8(os16,image_features[1], text_embeds[-1])
-        os4 = self.decoder4(os8,image_features[0], text_embeds[-1])
+        if self.memory is None:
+            os16 = self.decoder16(os32,image_features[2], text_embeds[-1])
+            os8 = self.decoder8(os16,image_features[1], text_embeds[-1])
+            os4 = self.decoder4(os8,image_features[0], text_embeds[-1])
+        else:
+            os16 = self.decoder16(os32,image_features[2], text_embeds[-1])
+            os8 = self.decoder8(os16,image_features[1], text_embeds[-1])
+            os4 = self.decoder4(os8,image_features[0], text_embeds[-1])
         os4 = rearrange(os4, 'B (H W) C -> B C H W',H=self.spatial_dim[-1],W=self.spatial_dim[-1])
         os1 = self.decoder1(os4)
 
