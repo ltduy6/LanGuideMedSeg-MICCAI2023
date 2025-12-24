@@ -182,6 +182,7 @@ class LanGuideMedSeg(nn.Module):
             else:
                 text_guidance = text_embeds[-1]
 
+        print(text_guidance.shape)
         os16 = self.decoder16(os32,image_features[2], text_guidance)
         os8 = self.decoder8(os16,image_features[1], text_guidance)
         os4 = self.decoder4(os8,image_features[0], text_guidance)
