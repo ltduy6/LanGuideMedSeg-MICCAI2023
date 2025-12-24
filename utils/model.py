@@ -152,10 +152,8 @@ class LanGuideMedSeg(nn.Module):
 
         if top_k == 1:
             retrieved_text_embeds = retrieved_text_embeds.squeeze(1)  # [B, 24, 768]
-            top_scores = top_scores.squeeze(1)  # [B]
-            top_original_indices = top_original_indices.squeeze(1)  # [B]
             
-        return retrieved_text_embeds, top_scores, top_original_indices
+        return retrieved_text_embeds
     
     def forward(self, data):
 
@@ -178,13 +176,12 @@ class LanGuideMedSeg(nn.Module):
             self.update_spaces(image_project, text_embeds[-1], idx)
             text_guidance = text_embeds[-1]
         else:
-            retrieved_text_embeds, similarity_scores, retrieved_indices = self.retrieve(image_project, top_k=1)
+            retrieved_text_embeds = self.retrieve(image_project, top_k=1)
             if retrieved_text_embeds is not None:
                 text_guidance = retrieved_text_embeds
             else:
                 text_guidance = text_embeds[-1]
 
-        print(text_guidance.shape)
         os16 = self.decoder16(os32,image_features[2], text_guidance)
         os8 = self.decoder8(os16,image_features[1], text_guidance)
         os4 = self.decoder4(os8,image_features[0], text_guidance)
