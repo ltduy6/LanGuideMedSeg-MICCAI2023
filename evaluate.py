@@ -9,7 +9,6 @@ import pytorch_lightning as pl
 
 from utils.dataset import QaTa
 import utils.config as config
-from utils.memory import Memory
 
 
 def get_parser():
