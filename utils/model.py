@@ -194,11 +194,10 @@ class LanGuideMedSeg(nn.Module):
             retrieved_text_embeds, similarity_scores, retrieved_indices = self.retrieve(image_project, top_k=1)
             if retrieved_text_embeds is not None:
                 text_guidance = retrieved_text_embeds
-                print(f"Retrieved text guidance with similarity scores: {similarity_scores.mean().item():.4f}")
             else:
                 text_guidance = text_embeds[-1]
-                print("Using original text embeddings as guidance due to retrieval failure.")
 
+        print(text_guidance.shape)
         os16 = self.decoder16(os32,image_features[2], text_guidance)
         os8 = self.decoder8(os16,image_features[1], text_guidance)
         os4 = self.decoder4(os8,image_features[0], text_guidance)
