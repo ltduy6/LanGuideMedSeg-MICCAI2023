@@ -57,6 +57,9 @@ class VisionModel(nn.Module):
 
         local_feats = output['last_hidden_state']  # B, N, hidden_dim
 
+        if local_feats.dim() == 4:
+            local_feats = rearrange(local_feats, 'b c h w -> b (h w) c')
+
         refined_embeds = self.refiner(global_embeds, local_feats)  # B, N, hidden_dim
 
         project = self.project_head(refined_embeds)
