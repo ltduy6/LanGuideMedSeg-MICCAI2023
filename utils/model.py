@@ -108,11 +108,11 @@ class LanGuideMedSeg(nn.Module):
 
         if self.query_space is None or self.response_space is None:
             print("Warning: query_space or response_space is not initialized.")
-            return None, None, None
+            return None
         
         if not self.update_mask.any():
             print("Warning: No entries in the memory have been updated yet.")
-            return None, None, None
+            return None
 
         if len(image_project.shape) == 1:
             image_project = image_project.unsqueeze(0)  # Make it [1, project_dim]
