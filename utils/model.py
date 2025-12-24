@@ -114,12 +114,6 @@ class LanGuideMedSeg(nn.Module):
             print("Warning: No entries in the memory have been updated yet.")
             return None, None, None
 
-        if len(image_project.shape) == 1:
-            image_project = image_project.unsqueeze(0)  # Make it [1, project_dim]
-            squeeze_output = True
-        else:
-            squeeze_output = False
-
         batch_size = image_project.shape[0]
 
         # Only consider updated entries in the memory
@@ -157,16 +151,6 @@ class LanGuideMedSeg(nn.Module):
             retrieved_text_embeds = retrieved_text_embeds.squeeze(1)  # [B, 24, 768]
             top_scores = top_scores.squeeze(1)  # [B]
             top_original_indices = top_original_indices.squeeze(1)  # [B]
-        
-        if squeeze_output:
-            if top_k == 1:
-                retrieved_text_embeds = retrieved_text_embeds.squeeze(0)  # [24, 768]
-                top_scores = top_scores.squeeze(0)  # []
-                top_original_indices = top_original_indices.squeeze(0)  # []
-            else:
-                retrieved_text_embeds = retrieved_text_embeds.squeeze(0)  # [top_k, 24, 768]
-                top_scores = top_scores.squeeze(0)  # [top_k]
-                top_original_indices = top_original_indices.squeeze(0)  # [top_k]
             
         return retrieved_text_embeds, top_scores, top_original_indices
     
