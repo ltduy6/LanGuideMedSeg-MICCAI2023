@@ -114,6 +114,9 @@ class LanGuideMedSeg(nn.Module):
             print("Warning: No entries in the memory have been updated yet.")
             return None, None, None
 
+        if len(image_project.shape) == 1:
+            image_project = image_project.unsqueeze(0)  # Make it [1, project_dim]
+
         batch_size = image_project.shape[0]
 
         # Only consider updated entries in the memory
