@@ -29,14 +29,10 @@ def get_parser():
 if __name__ == '__main__':
 
     args = get_parser()
-
-    # load model
-    memory = Memory()
-    memory.load_memory(args.memory_path)
-    model = LanGuideMedSegWrapper(args, memory=memory)
+    model = LanGuideMedSegWrapper(args)
 
     torch.serialization.add_safe_globals([config.CfgNode])
-    checkpoint = torch.load('./save_model/medseg-v5.ckpt',map_location='cpu',weights_only=False)["state_dict"]
+    checkpoint = torch.load('./save_model/medseg-v6.ckpt',map_location='cpu',weights_only=False)["state_dict"]
     model.load_state_dict(checkpoint,strict=True)
 
     # dataloader

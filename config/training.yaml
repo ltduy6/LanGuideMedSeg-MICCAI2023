@@ -26,3 +26,6 @@ DATA:
 
   test_csv_path: ./data/QaTa-COV19-v2/prompt/test.csv
   test_root_path: ./data/QaTa-COV19-v2/Test
+
+MEMORY:
+  memory_path: ./label_centroids.npy

@@ -42,7 +42,7 @@ class QaTa(Dataset):
 
         trans = self.transform(self.image_size)
 
-        image = os.path.join(self.root_path,'Images_H',self.image_list[idx].replace('mask_',''))
+        image = os.path.join(self.root_path,'Images',self.image_list[idx].replace('mask_',''))
         gt = os.path.join(self.root_path,'Ground-truths', self.image_list[idx])
         caption = self.caption_list[idx]
 
@@ -60,7 +60,7 @@ class QaTa(Dataset):
         gt = torch.where(gt==255,1,0)
         text = {'input_ids':token.squeeze(dim=0), 'attention_mask':mask.squeeze(dim=0)} 
 
-        return ([image, text], gt)
+        return ([image, text, idx], gt)
 
     def transform(self,image_size=[224,224]):
 

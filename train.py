@@ -47,7 +47,11 @@ if __name__ == '__main__':
                     image_size=args.image_size,
                     mode='valid')
 
+    # Add training dataset size to args
+    args.train_dataset_size = len(ds_train)
+    print(f"Training dataset size: {args.train_dataset_size}")
 
+    # Create dataloaders
     dl_train = DataLoader(ds_train, batch_size=args.train_batch_size, shuffle=True, num_workers=args.train_batch_size)
     dl_valid = DataLoader(ds_valid, batch_size=args.valid_batch_size, shuffle=False, num_workers=args.valid_batch_size)
 
