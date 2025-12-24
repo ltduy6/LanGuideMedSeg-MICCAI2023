@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from einops import rearrange, repeat
-from .layers import GuideDecoder
+from .layers import GuideDecoder, CrossAttentionRefiner
 from monai.networks.blocks.dynunet_block import UnetOutBlock
 from monai.networks.blocks.upsample import SubpixelUpsample
 from transformers import AutoTokenizer, AutoModel
@@ -41,14 +41,25 @@ class VisionModel(nn.Module):
         super(VisionModel, self).__init__()
 
         self.model = AutoModel.from_pretrained(vision_type,output_hidden_states=True)   
+
+        self.hidden_dim = 768
+
+        self.refiner = CrossAttentionRefiner(input_dim=self.hidden_dim)
+
         self.project_head = nn.Linear(768, project_dim)
         self.spatial_dim = 768
 
     def forward(self, x):
 
         output = self.model(x, output_hidden_states=True)
-        embeds = output['pooler_output'].squeeze()
-        project = self.project_head(embeds)
+        
+        global_embeds = output['pooler_output']  # B, hidden_dim
+
+        local_feats = output['last_hidden_state']  # B, N, hidden_dim
+
+        refined_embeds = self.refiner(global_embeds, local_feats)  # B, N, hidden_dim
+
+        project = self.project_head(refined_embeds)
 
         return {"feature":output['hidden_states'], "project":project}
 

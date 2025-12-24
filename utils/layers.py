@@ -108,4 +108,32 @@ class GuideDecoder(nn.Module):
 
         return output
 
+class CrossAttentionRefiner(nn.Module):
+    def __init__(self, input_dim, num_heads=8, dropout=0.1):
+        super().__init__()
+        self.attention = nn.MultiheadAttention(embed_dim=input_dim, num_heads=num_heads, batch_first=True)
+        self.norm = nn.LayerNorm(input_dim)
+        self.dropout = nn.Dropout(dropout)
 
+        self.ffn = nn.Sequential(
+            nn.Linear(input_dim, input_dim * 4),
+            nn.GELU(),
+            nn.Linear(input_dim * 4, input_dim),
+            nn.Dropout(dropout)
+        )
+
+        self.norm_ffn = nn.LayerNorm(input_dim)
+    
+    def forward(self, global_feat, local_feats):
+        """
+        global_feat: [B, C] (Query)
+        local_feats: [B, Seq_Len, C] (Key, Value)
+        """
+        query = global_feat.unsqueeze(1)  # [B, 1, C]
+        attn_output, _ = self.attention(query, local_feats, local_feats)
+
+        x = self.norm(query + self.dropout(attn_output))
+
+        x = self.norm_ffn(x + self.ffn(x))
+
+        return x.squeeze(1)  # [B, C]
