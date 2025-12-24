@@ -126,7 +126,7 @@ class LanGuideMedSeg(nn.Module):
 
         if len(valid_indices) == 0:
             print("Warning: No valid entries in the memory to retrieve from.")
-            return None, None, None
+            return None
         
         # Normalize for cosine similarity
         image_project_norm = F.normalize(image_project, p=2, dim=1)
