@@ -28,10 +28,19 @@ def get_parser():
 if __name__ == '__main__':
 
     args = get_parser()
-    model = LanGuideMedSegWrapper(args)
 
     torch.serialization.add_safe_globals([config.CfgNode])
     checkpoint = torch.load('./save_model/medseg.ckpt',map_location='cpu',weights_only=False)["state_dict"]
+    
+    if "model.query_space" in checkpoint:
+        training_dataset_size = checkpoint["model.query_space"].shape[0]
+        args.train_dataset_size = training_dataset_size
+        print(f"Training dataset size loaded from checkpoint: {training_dataset_size}")
+    else:
+        args.train_dataset_size = None
+        print(f"Training dataset size not found in checkpoint.")
+        
+    model = LanGuideMedSegWrapper(args)
     model.load_state_dict(checkpoint,strict=True)
 
     # dataloader
