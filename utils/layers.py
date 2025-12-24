@@ -129,6 +129,7 @@ class CrossAttentionRefiner(nn.Module):
         global_feat: [B, C] (Query)
         local_feats: [B, Seq_Len, C] (Key, Value)
         """
+        print(local_feats.shape)
         query = global_feat.unsqueeze(1)  # [B, 1, C]
         attn_output, _ = self.attention(query, local_feats, local_feats)
 
