@@ -8,7 +8,7 @@ TRAIN:
 
   min_epochs: 20
   max_epochs: 100
-  patience: 20
+  patience: 30
 
   device: 1
 

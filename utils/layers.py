@@ -44,11 +44,11 @@ class GuideDecoderLayer(nn.Module):
         self.cross_attn = nn.MultiheadAttention(embed_dim=in_channels,num_heads=4,batch_first=True)
 
         self.text_project = nn.Sequential(
-            nn.Conv1d(input_text_len,output_text_len,kernel_size=1,stride=1),
+            nn.Linear(embed_dim, in_channels),
             nn.GELU(),
-            nn.Linear(embed_dim,in_channels),
-            nn.LeakyReLU(),
         )
+
+        self.text_len_project = nn.Linear(input_text_len, output_text_len)
 
         self.vis_pos = PositionalEncoding(in_channels)
         self.txt_pos = PositionalEncoding(in_channels,max_len=output_text_len)
@@ -56,8 +56,17 @@ class GuideDecoderLayer(nn.Module):
         self.norm1 = nn.LayerNorm(in_channels)
         self.norm2 = nn.LayerNorm(in_channels)
 
-        self.scale = nn.Parameter(torch.tensor(1.421),requires_grad=True)
+        self.scale = nn.Parameter(torch.tensor(1.0),requires_grad=True)
 
+        self.ffn = nn.Sequential(
+            nn.Linear(in_channels, in_channels * 4),
+            nn.GELU(),
+            nn.Linear(in_channels * 4, in_channels)
+        )
+
+        self.norm1 = nn.LayerNorm(in_channels)
+        self.norm2 = nn.LayerNorm(in_channels)
+        self.norm3 = nn.LayerNorm(in_channels)
 
     def forward(self,x,txt):
 
@@ -66,6 +75,8 @@ class GuideDecoderLayer(nn.Module):
         txt:[B,L,C]
         '''
         txt = self.text_project(txt)
+        txt = txt.transpose(1, 2)
+        txt = self.text_len_project(txt).transpose(1, 2)
 
         # Self-Attention
         vis2 = self.norm1(x)
@@ -76,11 +87,12 @@ class GuideDecoderLayer(nn.Module):
 
         # Cross-Attention
         vis2 = self.norm2(vis)
-        vis2,_ = self.cross_attn(query=self.vis_pos(vis2),
+        vis2 = self.cross_attn(query=self.vis_pos(vis2),
                                    key=self.txt_pos(txt),
-                                   value=txt)
-        vis2 = self.cross_attn_norm(vis2)
+                                   value=txt)[0]
         vis = vis + self.scale*vis2
+
+        vis = vis + self.ffn(self.norm3(vis))
 
         return vis
 
