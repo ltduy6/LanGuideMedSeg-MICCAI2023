@@ -69,7 +69,7 @@ class QaTa(Dataset):
                 LoadImaged(["image","gt"], reader='PILReader'),
                 EnsureChannelFirstd(["image","gt"]),
                 RandZoomd(['image','gt'],min_zoom=0.95,max_zoom=1.2,mode=["bicubic","nearest"],prob=0.1),
-                RandRotated(keys=["image","gt"], range_x=[-0.3, 0.3], keep_size=True, mode=['bicubic','bicubic','bicubic','nearest'],  prob=0.3),
+                RandRotated(keys=["image","gt"], range_x=[-0.3, 0.3], keep_size=True, mode=['bicubic','nearest'],  prob=0.3),
                 RandGaussianNoised(keys=["image"], prob=0.3, mean=0.0, std=0.1),
                 Resized(["image"],spatial_size=image_size,mode='bicubic'),
                 Resized(["gt"],spatial_size=image_size,mode='nearest'),
