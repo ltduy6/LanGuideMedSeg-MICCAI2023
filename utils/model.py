@@ -76,7 +76,7 @@ class LanGuideMedSeg(nn.Module):
             image = repeat(image,'b 1 h w -> b c h w',c=3)
 
         image_output = self.encoder(image)
-        image_features = image_output['feature'], image_output['project']
+        image_features = image_output['feature']
         text_output = self.text_encoder(text['input_ids'],text['attention_mask'])
         text_embeds, text_project = text_output['feature'],text_output['project']
 
