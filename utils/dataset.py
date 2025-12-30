@@ -3,7 +3,7 @@ import os
 import torch
 import pandas as pd
 from monai.transforms import (AddChanneld, Compose, Lambdad, NormalizeIntensityd,RandCoarseShuffled,RandRotated,RandZoomd,
-                              Resized, ToTensord, LoadImaged, EnsureChannelFirstd)
+                              Resized, ToTensord, LoadImaged, EnsureChannelFirstd, RandGaussianNoised)
 from torch.utils.data import DataLoader, Dataset
 from transformers import AutoTokenizer
 
@@ -69,6 +69,8 @@ class QaTa(Dataset):
                 LoadImaged(["image","gt"], reader='PILReader'),
                 EnsureChannelFirstd(["image","gt"]),
                 RandZoomd(['image','gt'],min_zoom=0.95,max_zoom=1.2,mode=["bicubic","nearest"],prob=0.1),
+                RandRotated(keys=["image","gt"], range_x=[-0.3, 0.3], keep_size=True, mode=['bicubic','bicubic','bicubic','nearest'],  prob=0.3),
+                RandGaussianNoised(keys=["image"], prob=0.3, mean=0.0, std=0.1),
                 Resized(["image"],spatial_size=image_size,mode='bicubic'),
                 Resized(["gt"],spatial_size=image_size,mode='nearest'),
                 NormalizeIntensityd(['image'], channel_wise=True),
