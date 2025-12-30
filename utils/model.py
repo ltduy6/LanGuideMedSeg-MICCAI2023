@@ -4,7 +4,7 @@ from einops import rearrange, repeat
 from .layers import GuideDecoder
 from monai.networks.blocks.dynunet_block import UnetOutBlock
 from monai.networks.blocks.upsample import SubpixelUpsample
-from transformers import AutoTokenizer, AutoModel, SegFormerModel
+from transformers import AutoTokenizer, AutoModel, SegformerModel
 
 
 
@@ -40,7 +40,7 @@ class VisionModel(nn.Module):
     def __init__(self, vision_type, project_dim):
         super(VisionModel, self).__init__()
 
-        self.model = SegFormerModel.from_pretrained(vision_type,output_hidden_states=True)   
+        self.model = SegformerModel.from_pretrained(vision_type,output_hidden_states=True)   
         self.project_head = nn.Linear(512, project_dim)
 
     def forward(self, x):
