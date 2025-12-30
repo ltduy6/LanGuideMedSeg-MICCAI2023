@@ -48,8 +48,6 @@ class VisionModel(nn.Module):
         output = self.model(x, output_hidden_states=True)
         hidden_states = output.hidden_states
 
-        print(len(hidden_states))
-
         return {"feature":hidden_states}
 
 
@@ -81,6 +79,10 @@ class LanGuideMedSeg(nn.Module):
         image_features = image_output['feature']
         text_output = self.text_encoder(text['input_ids'],text['attention_mask'])
         text_embeds = text_output['feature']
+
+        print(f"Number of image features: {len(image_features)}")
+        for i, feat in enumerate(image_features):
+            print(f"Feature {i} shape: {feat.shape}")
 
         os32 = image_features[3]
         os16 = self.decoder16(os32,image_features[2], text_embeds[-1])
