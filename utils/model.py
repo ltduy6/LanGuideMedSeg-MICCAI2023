@@ -46,7 +46,7 @@ class VisionModel(nn.Module):
     def forward(self, x):
 
         output = self.model(x, output_hidden_states=True)
-        hidden_states = output.hidden_states[1:]
+        hidden_states = output.hidden_states
 
         print(len(hidden_states))
 
