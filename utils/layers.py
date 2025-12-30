@@ -88,7 +88,7 @@ class GuideDecoderLayer(nn.Module):
         # Cross-Attention
         vis2 = self.norm2(vis)
         vis2 = self.cross_attn(query=self.vis_pos(vis2),
-                                   key=self.txt_pos(txt),
+                                   key=txt,
                                    value=txt)[0]
         vis = vis + self.scale*vis2
 
