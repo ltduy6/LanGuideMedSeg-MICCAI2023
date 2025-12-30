@@ -3,4 +3,5 @@ torchmetrics==0.10.3
 transformers==4.24.0  
 monai==1.0.1  
 pandas==1.4.2  
-einops==0.4.1 
+einops==0.4.1
+timm 

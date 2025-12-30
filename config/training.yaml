@@ -17,8 +17,8 @@ TRAIN:
 
 MODEL:
   bert_type: microsoft/BiomedVLP-CXR-BERT-specialized
-  vision_type: facebook/convnext-tiny-224
-  project_dim: 768
+  vision_type: nvidia/mit-b2
+  project_dim: 512
 
 DATA:
   train_csv_path: ./data/QaTa-COV19-v2/prompt/train.csv
