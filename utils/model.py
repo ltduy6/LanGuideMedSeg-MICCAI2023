@@ -80,9 +80,8 @@ class LanGuideMedSeg(nn.Module):
         text_output = self.text_encoder(text['input_ids'],text['attention_mask'])
         text_embeds = text_output['feature']
 
-        print(f"Number of image features: {len(image_features)}")
-        for i, feat in enumerate(image_features):
-            print(f"Feature {i} shape: {feat.shape}")
+        if len(image_features[0].shape) == 4:
+            image_features = [rearrange(item, 'b c h w -> b (h w) c') for item in image_features]
 
         os32 = image_features[3]
         os16 = self.decoder16(os32,image_features[2], text_embeds[-1])
