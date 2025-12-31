@@ -44,7 +44,10 @@ class LanGuideMedSegWrapper(pl.LightningModule):
 
     def shared_step(self,batch,batch_idx):
         x, y = batch
-        preds = self(x)
+        if self.training:
+            preds = self.model(x, mask=y)
+        else:
+            preds = self.model(x)
         loss = self.loss_fn(preds,y)
         return {'loss': loss, 'preds': preds.detach(), 'y': y.detach()}    
     

@@ -72,9 +72,9 @@ class LanGuideMedSeg(nn.Module):
         self.decoder1 = SubpixelUpsample(2,feature_dim[3],24,4)
         self.out = UnetOutBlock(2, in_channels=24, out_channels=1)
 
-    def forward(self, data):
+    def forward(self, data, mask=None):
 
-        image, text, mask = data
+        image, text = data
         if image.shape[1] == 1:   
             image = repeat(image,'b 1 h w -> b c h w',c=3)
 
