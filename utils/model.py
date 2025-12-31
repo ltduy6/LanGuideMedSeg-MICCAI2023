@@ -60,7 +60,7 @@ class LanGuideMedSeg(nn.Module):
         super(LanGuideMedSeg, self).__init__()
 
         self.encoder = VisionModel(vision_type, project_dim)
-        # self.text_encoder = BERTModel(bert_type, project_dim)
+        self.text_encoder = BERTModel(bert_type, project_dim)
 
         self.spatial_dim = [7,14,28,56]    # 224*224
         feature_dim = [768,384,192,96]
