@@ -73,19 +73,16 @@ class LanGuideMedSeg(nn.Module):
 
     def forward(self, data):
 
-        image, text = data
+        image, text, gt = data
         if image.shape[1] == 1:   
             image = repeat(image,'b 1 h w -> b c h w',c=3)
 
         image_output = self.encoder(image)
         image_features = image_output['feature']
-        # text_output = self.text_encoder(text['input_ids'],text['attention_mask'])
-        # text_embeds, text_project = text_output['feature'],text_output['project']
+        text_output = self.text_encoder(text['input_ids'],text['attention_mask'])
+        text_embeds, text_project = text_output['feature'],text_output['project']
 
-        for item in image_features:
-            print(item.shape)
-        
-        print("-----")
+        print(gt.shape)
 
         if len(image_features[0].shape) == 4: 
             image_features = image_features[1:]  # 4 8 16 32   convnext: Embedding + 4 layers feature map
