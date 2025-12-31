@@ -95,6 +95,108 @@ class GuideDecoderLayer(nn.Module):
         vis = vis + self.ffn(self.norm3(vis))
 
         return vis
+    
+class MaskGuideDecoderLayer(nn.Module):
+
+    def __init__(self, in_channels:int, output_text_len:int, input_text_len:int=24, embed_dim:int=768):
+
+        super(MaskGuideDecoderLayer, self).__init__()
+
+        self.in_channels = in_channels
+
+        self.self_attn_norm = nn.LayerNorm(in_channels)
+        self.cross_attn_norm = nn.LayerNorm(in_channels)
+
+        self.self_attn = nn.MultiheadAttention(embed_dim=in_channels,num_heads=1,batch_first=True)
+        self.cross_attn = nn.MultiheadAttention(embed_dim=in_channels,num_heads=4,batch_first=True)
+
+        self.text_project = nn.Sequential(
+            nn.Linear(embed_dim, in_channels),
+            nn.GELU(),
+        )
+
+        self.text_len_project = nn.Linear(input_text_len, output_text_len)
+
+        self.vis_pos = PositionalEncoding(in_channels)
+        self.txt_pos = PositionalEncoding(in_channels,max_len=output_text_len)
+
+        self.norm1 = nn.LayerNorm(in_channels)
+        self.norm2 = nn.LayerNorm(in_channels)
+
+        self.scale = nn.Parameter(torch.tensor(1.0),requires_grad=True)
+
+        self.ffn = nn.Sequential(
+            nn.Linear(in_channels, in_channels * 4),
+            nn.GELU(),
+            nn.Linear(in_channels * 4, in_channels)
+        )
+
+        self.norm1 = nn.LayerNorm(in_channels)
+        self.norm2 = nn.LayerNorm(in_channels)
+        self.norm3 = nn.LayerNorm(in_channels)
+
+        self.mask_encoder = nn.Sequential(
+            nn.Conv2d(1, in_channels//4, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(in_channels//4, in_channels//2, 3, padding=1),
+            nn.ReLU(),
+            nn.AdaptiveAvgPool2d(1),
+            nn.Flatten(),
+            nn.Linear(in_channels//2, in_channels),
+        )
+
+        self.mask_guided_attn = nn.MultiheadAttention(embed_dim=in_channels,num_heads=4,batch_first=True)
+        self.mask_gate = nn.Sequential(
+            nn.Linear(in_channels * 2, in_channels),
+            nn.Sigmoid()
+        )
+
+    def forward(self,x,txt, mask=None):
+
+        '''
+        x:[B N C1]
+        txt:[B,L,C]
+        mask: [B 1 H W] ground truth mask (only for training)
+        '''
+        txt = self.text_project(txt)
+        txt = txt.transpose(1, 2)
+        txt = self.text_len_project(txt).transpose(1, 2)
+
+        # Self-Attention
+        vis2 = self.norm1(x)
+        q = k = self.vis_pos(vis2)
+        vis2 = self.self_attn(q, k, value=vis2)[0]
+        vis2 = self.self_attn_norm(vis2)
+        vis = x + vis2
+
+        # Cross-Attention
+        vis2 = self.norm2(vis)
+        cross_attn_output = self.cross_attn(query=self.vis_pos(vis2),
+                                   key=txt,
+                                   value=txt)[0]
+        
+        if mask is not None and self.training:
+            mask_features = self.mask_encoder(mask)
+            mask_features = mask_features.unsqueeze(1).expand(-1, x.size(1), -1)
+
+            mask_guided_output = self.mask_guided_attn(
+                query = vis2,
+                key = mask_features,
+                value = mask_features
+            )[0]
+
+            gate_input = torch.cat([vis2, mask_guided_output], dim=-1)
+            gate = self.mask_gate(gate_input)
+            final_output = gate * cross_attn_output + (1 - gate) * mask_guided_output
+        else:
+            final_output = cross_attn_output
+
+        vis = vis + self.scale * final_output
+
+        vis = vis + self.ffn(self.norm3(vis))
+
+        return vis
+
 
 class GuideDecoder(nn.Module):
 
@@ -102,15 +204,15 @@ class GuideDecoder(nn.Module):
 
         super().__init__()
 
-        self.guide_layer = GuideDecoderLayer(in_channels,text_len)   # for skip
+        self.guide_layer = MaskGuideDecoderLayer(in_channels,text_len)   # for skip
         self.spatial_size = spatial_size
         self.decoder = UnetrUpBlock(2,in_channels,out_channels,3,2,norm_name='BATCH')
 
     
-    def forward(self, vis, skip_vis, txt):
+    def forward(self, vis, skip_vis, txt, mask=None):
 
         if txt is not None:
-            vis =  self.guide_layer(vis, txt)
+            vis =  self.guide_layer(vis, txt, mask)
 
         vis = rearrange(vis,'B (H W) C -> B C H W',H=self.spatial_size,W=self.spatial_size)
         skip_vis = rearrange(skip_vis,'B (H W) C -> B C H W',H=self.spatial_size*2,W=self.spatial_size*2)
