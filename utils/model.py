@@ -41,16 +41,16 @@ class VisionModel(nn.Module):
         super(VisionModel, self).__init__()
 
         self.model = AutoModel.from_pretrained(vision_type,output_hidden_states=True)   
-        self.project_head = nn.Linear(768, project_dim)
-        self.spatial_dim = 768
+        # self.project_head = nn.Linear(768, project_dim)
+        # self.spatial_dim = 768
 
     def forward(self, x):
 
         output = self.model(x, output_hidden_states=True)
-        embeds = output['pooler_output'].squeeze()
-        project = self.project_head(embeds)
+        # embeds = output['pooler_output'].squeeze()
+        # project = self.project_head(embeds)
 
-        return {"feature":output['hidden_states'], "project":project}
+        return {"feature":output['hidden_states']}
 
 
 class LanGuideMedSeg(nn.Module):
@@ -60,7 +60,7 @@ class LanGuideMedSeg(nn.Module):
         super(LanGuideMedSeg, self).__init__()
 
         self.encoder = VisionModel(vision_type, project_dim)
-        self.text_encoder = BERTModel(bert_type, project_dim)
+        # self.text_encoder = BERTModel(bert_type, project_dim)
 
         self.spatial_dim = [7,14,28,56]    # 224*224
         feature_dim = [768,384,192,96]
@@ -78,18 +78,18 @@ class LanGuideMedSeg(nn.Module):
             image = repeat(image,'b 1 h w -> b c h w',c=3)
 
         image_output = self.encoder(image)
-        image_features, image_project = image_output['feature'], image_output['project']
-        text_output = self.text_encoder(text['input_ids'],text['attention_mask'])
-        text_embeds, text_project = text_output['feature'],text_output['project']
+        image_features = image_output['feature']
+        # text_output = self.text_encoder(text['input_ids'],text['attention_mask'])
+        # text_embeds, text_project = text_output['feature'],text_output['project']
 
         if len(image_features[0].shape) == 4: 
             image_features = image_features[1:]  # 4 8 16 32   convnext: Embedding + 4 layers feature map
             image_features = [rearrange(item,'b c h w -> b (h w) c') for item in image_features] 
 
         os32 = image_features[3]
-        os16 = self.decoder16(os32,image_features[2], text_embeds[-1])
-        os8 = self.decoder8(os16,image_features[1], text_embeds[-1])
-        os4 = self.decoder4(os8,image_features[0], text_embeds[-1])
+        os16 = self.decoder16(os32,image_features[2], None)
+        os8 = self.decoder8(os16,image_features[1], None)
+        os4 = self.decoder4(os8,image_features[0], None)
         os4 = rearrange(os4, 'B (H W) C -> B C H W',H=self.spatial_dim[-1],W=self.spatial_dim[-1])
         os1 = self.decoder1(os4)
 
