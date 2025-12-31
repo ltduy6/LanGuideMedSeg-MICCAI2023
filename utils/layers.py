@@ -172,7 +172,7 @@ class MaskGuideDecoderLayer(nn.Module):
         # Cross-Attention
         vis2 = self.norm2(vis)
         cross_attn_output = self.cross_attn(query=self.vis_pos(vis2),
-                                   key=txt,
+                                   key=self.vis_pos(txt),
                                    value=txt)[0]
         
         if mask is not None and self.training:
