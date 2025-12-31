@@ -82,6 +82,8 @@ class LanGuideMedSeg(nn.Module):
         # text_output = self.text_encoder(text['input_ids'],text['attention_mask'])
         # text_embeds, text_project = text_output['feature'],text_output['project']
 
+        print(image_features[0].shape)
+
         if len(image_features[0].shape) == 4: 
             image_features = image_features[1:]  # 4 8 16 32   convnext: Embedding + 4 layers feature map
             image_features = [rearrange(item,'b c h w -> b (h w) c') for item in image_features] 
