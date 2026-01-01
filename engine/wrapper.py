@@ -10,6 +10,7 @@ import pandas as pd
 import sys
 import numpy as np
 import datetime
+import torch.nn.functional as F
 
 class LanGuideMedSegWrapper(pl.LightningModule):
 
@@ -29,6 +30,7 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         self.test_metrics = deepcopy(self.train_metrics)
         
         self.save_hyperparameters()
+        self.mapper_loss_weight = 0.2
 
     def configure_optimizers(self):
 
@@ -44,10 +46,17 @@ class LanGuideMedSegWrapper(pl.LightningModule):
 
     def shared_step(self,batch,batch_idx):
         x, y = batch
-        preds = self(x)
-        loss = self.loss_fn(preds,y)
-        return {'loss': loss, 'preds': preds.detach(), 'y': y.detach()}    
-    
+        preds, image_tokens, text_tokens = self(x)
+        main_loss = self.loss_fn(preds,y)
+
+        if self.training:
+            generated_text_tokens = self.model.visual_text_mapper(image_tokens)
+            mapper_loss = F.mse_loss(generated_text_tokens, text_tokens)
+            total_loss = main_loss + self.mapper_loss_weight * mapper_loss
+        else:
+            total_loss = main_loss
+        return {'loss': total_loss, 'preds': preds.detach(), 'y': y.detach()}
+
     def training_step(self, batch, batch_idx):
         return self.shared_step(batch,batch_idx)
     

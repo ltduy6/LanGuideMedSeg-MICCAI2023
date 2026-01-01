@@ -5,6 +5,7 @@ from .layers import GuideDecoder
 from monai.networks.blocks.dynunet_block import UnetOutBlock
 from monai.networks.blocks.upsample import SubpixelUpsample
 from transformers import AutoTokenizer, AutoModel
+from .mapper import CrossAttentionTokenMapper
 
 
 
@@ -71,6 +72,8 @@ class LanGuideMedSeg(nn.Module):
         self.decoder1 = SubpixelUpsample(2,feature_dim[3],24,4)
         self.out = UnetOutBlock(2, in_channels=24, out_channels=1)
 
+        self.visual_text_mapper = CrossAttentionTokenMapper()
+
     def forward(self, data):
 
         image, text = data
@@ -87,13 +90,22 @@ class LanGuideMedSeg(nn.Module):
             image_features = [rearrange(item,'b c h w -> b (h w) c') for item in image_features] 
 
         os32 = image_features[3]
-        os16 = self.decoder16(os32,image_features[2], text_embeds[-1])
-        os8 = self.decoder8(os16,image_features[1], text_embeds[-1])
-        os4 = self.decoder4(os8,image_features[0], text_embeds[-1])
+        image_tokens = os32.clone()
+        text_tokens = text_embeds[-1].clone()
+
+        if self.training:
+            generated_text_tokens = self.visual_text_mapper(os32)
+            text_embeds_last = generated_text_tokens
+        else:
+            text_embeds_last = text_embeds[-1]
+
+        os16 = self.decoder16(os32,image_features[2], text_embeds_last)
+        os8 = self.decoder8(os16,image_features[1], text_embeds_last)
+        os4 = self.decoder4(os8,image_features[0], text_embeds_last)
         os4 = rearrange(os4, 'B (H W) C -> B C H W',H=self.spatial_dim[-1],W=self.spatial_dim[-1])
         os1 = self.decoder1(os4)
 
         out = self.out(os1).sigmoid()
 
-        return out
+        return out, image_tokens, text_tokens
     
