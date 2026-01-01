@@ -12,8 +12,9 @@ TRAIN:
 
   device: 1
 
-  model_save_path: ./save_model
+  model_save_path: ./save_model_qata
   model_save_filename: medseg
+  best_model_path: ./save_model_qata/medseg-v1.ckpt
 
 MODEL:
   bert_type: microsoft/BiomedVLP-CXR-BERT-specialized
@@ -21,6 +22,7 @@ MODEL:
   project_dim: 768
 
 DATA:
+  data: QaTa
   train_csv_path: ./data/QaTa-COV19-v2/prompt/train.csv
   train_root_path: ./data/QaTa-COV19-v2/Train
 

@@ -33,17 +33,18 @@ if __name__ == '__main__':
     model = LanGuideMedSegWrapper(args)
 
     torch.serialization.add_safe_globals([config.CfgNode])
-    checkpoint = torch.load('./save_model/medseg.ckpt',map_location='cpu',weights_only=False)["state_dict"]
-    model.load_state_dict(checkpoint,strict=True)
 
-    # dataloader
     if args.data == 'QaTa':
+        checkpoint = torch.load(args.best_model_path,map_location='cpu',weights_only=False)["state_dict"]
+        model.load_state_dict(checkpoint,strict=True)
         ds_test = QaTa(csv_path=args.test_csv_path,
                         root_path=args.test_root_path,
                         tokenizer=args.bert_type,
                         image_size=args.image_size,
                         mode='test')
     elif args.data == 'MosMedPlus':
+        checkpoint = torch.load(args.best_model_path,map_location='cpu',weights_only=False)["state_dict"]
+        model.load_state_dict(checkpoint,strict=True)
         ds_test = MosMedPlus(csv_path=args.test_csv_path,
                         root_path=args.test_root_path,
                         tokenizer=args.bert_type,
