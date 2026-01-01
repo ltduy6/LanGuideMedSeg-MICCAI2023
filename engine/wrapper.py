@@ -55,7 +55,7 @@ class LanGuideMedSegWrapper(pl.LightningModule):
             total_loss = main_loss + self.mapper_loss_weight * mapper_loss
         else:
             total_loss = main_loss
-        return {'loss': total_loss, 'preds': preds.detach(), 'y': y.detach()}
+        return {'loss': total_loss, 'preds': preds.detach(), 'y': y.detach(), 'mapper_loss': mapper_loss.detach() if self.training else torch.tensor(0.0)}
 
     def training_step(self, batch, batch_idx):
         return self.shared_step(batch,batch_idx)

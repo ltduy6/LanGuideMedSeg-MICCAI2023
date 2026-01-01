@@ -94,10 +94,10 @@ class LanGuideMedSeg(nn.Module):
         text_tokens = text_embeds[-1].clone()
 
         if self.training:
+            text_embeds_last = text_embeds[-1]
+        else:
             generated_text_tokens = self.visual_text_mapper(os32)
             text_embeds_last = generated_text_tokens
-        else:
-            text_embeds_last = text_embeds[-1]
 
         os16 = self.decoder16(os32,image_features[2], text_embeds_last)
         os8 = self.decoder8(os16,image_features[1], text_embeds_last)
