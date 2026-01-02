@@ -23,7 +23,8 @@ class LanGuideMedSegWrapper(pl.LightningModule):
             args.vision_type,
             args.project_dim,
             args.dropout_prob,
-            args.alpha
+            args.alpha,
+            args.use_curriculum
         )
 
         self.lr = args.lr
@@ -64,7 +65,7 @@ class LanGuideMedSegWrapper(pl.LightningModule):
             total_loss = main_loss + self.alignment_loss_weight * alignment_loss
             self.log('alignment_loss', alignment_loss, prog_bar=True)
             self.log('main_loss', main_loss, prog_bar=True)
-            
+
             return {
                 'loss': total_loss,
                 'preds': preds.detach(),
@@ -165,3 +166,7 @@ class LanGuideMedSegWrapper(pl.LightningModule):
     def print_bar(self): 
         nowtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.print("\n"+"="*80 + "%s"%nowtime)
+    
+    def on_train_epoch_start(self):
+        if self.model.use_curriculum:
+            self.model.set_epoch(self.current_epoch)

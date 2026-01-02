@@ -56,7 +56,7 @@ class VisionModel(nn.Module):
 
 class LanGuideMedSeg(nn.Module):
 
-    def __init__(self, bert_type, vision_type, project_dim=512, dropout_prob=0.3, alpha=0.7):
+    def __init__(self, bert_type, vision_type, project_dim=512, dropout_prob=0.3, alpha=0.7, use_curriculum=True):
 
         super(LanGuideMedSeg, self).__init__()
 
@@ -74,8 +74,26 @@ class LanGuideMedSeg(nn.Module):
         
         self.dropout_prob = dropout_prob
         self.alpha = alpha
+        self.use_curriculum = use_curriculum
+        self.current_epoch = 0
         self.visual_text_mapper = CrossAttentionTokenMapper()
 
+    def set_epoch(self, epoch):
+        self.current_epoch = epoch
+    
+    def get_curriculum_params(self):
+        if not self.use_curriculum:
+            return self.dropout_prob, self.alpha
+        
+        max_epochs = 100
+        progress = min(self.current_epoch / max_epochs, 1.0)
+
+        dropout_prob = self.dropout_prob * progress
+
+        alpha = self.alpha (1 - 0.5 * progress)
+
+        return dropout_prob, alpha
+    
     def forward(self, data):
 
         image, text = data
@@ -97,6 +115,7 @@ class LanGuideMedSeg(nn.Module):
         generated_visual_tokens = self.visual_text_mapper(os32)
 
         if self.training:
+            dropout_prob, alpha = self.get_curriculum_params()
             text_tokens = text_embeds[-1].clone()
 
             batch_size = text_tokens.size(0)
@@ -104,11 +123,11 @@ class LanGuideMedSeg(nn.Module):
             guidance_tokens = torch.zeros_like(text_tokens)
 
             for b in range(batch_size):
-                if torch.rand(1).item() < self.dropout_prob:
+                if torch.rand(1).item() < dropout_prob:
                     guidance_tokens[b] = generated_visual_tokens[b]
                 else:
-                    guidance_tokens[b] = (self.alpha * text_tokens[b] + (1 - self.alpha) * generated_visual_tokens[b])
-            
+                    guidance_tokens[b] = (alpha * text_tokens[b] + (1 - alpha) * generated_visual_tokens[b])
+
             text_embeds_last = guidance_tokens
 
             return_info = {

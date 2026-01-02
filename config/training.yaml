@@ -24,6 +24,7 @@ MODEL:
   dropout_prob: 0.3
   alpha: 0.7
   alignment_loss_weight: 0.2
+  use_curriculum: True
 
 DATA:
   data: QaTa
