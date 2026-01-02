@@ -18,7 +18,14 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         
         super(LanGuideMedSegWrapper, self).__init__()
         
-        self.model = LanGuideMedSeg(args.bert_type, args.vision_type, args.project_dim)
+        self.model = LanGuideMedSeg(
+            args.bert_type,
+            args.vision_type,
+            args.project_dim,
+            args.dropout_prob,
+            args.alpha
+        )
+
         self.lr = args.lr
         self.history = {}
         
@@ -30,7 +37,7 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         self.test_metrics = deepcopy(self.train_metrics)
         
         self.save_hyperparameters()
-        self.mapper_loss_weight = 0.2
+        self.alignment_loss_weight = args.alignment_loss_weight
 
     def configure_optimizers(self):
 
@@ -46,16 +53,33 @@ class LanGuideMedSegWrapper(pl.LightningModule):
 
     def shared_step(self,batch,batch_idx):
         x, y = batch
-        preds, image_tokens, text_tokens = self(x)
+        preds, return_info = self(x)
         main_loss = self.loss_fn(preds,y)
 
         if self.training:
-            generated_text_tokens = self.model.visual_text_mapper(image_tokens)
-            mapper_loss = F.mse_loss(generated_text_tokens, text_tokens)
-            total_loss = main_loss + self.mapper_loss_weight * mapper_loss
+            visual_tokens = return_info['generated_visual_tokens']
+            text_tokens = return_info['text_tokens']
+
+            alignment_loss = F.mse_loss(visual_tokens, text_tokens)
+            total_loss = main_loss + self.alignment_loss_weight * alignment_loss
+            self.log('alignment_loss', alignment_loss, prog_bar=True)
+            self.log('main_loss', main_loss, prog_bar=True)
+            
+            return {
+                'loss': total_loss,
+                'preds': preds.detach(),
+                'y': y.detach(),
+                'alignment_loss': alignment_loss.detach(),
+                'main_loss': main_loss.detach()
+            }
         else:
-            total_loss = main_loss
-        return {'loss': total_loss, 'preds': preds.detach(), 'y': y.detach(), 'mapper_loss': mapper_loss.detach() if self.training else torch.tensor(0.0)}
+            return {
+                'loss': main_loss,
+                'preds': preds.detach(),
+                'y': y.detach(),
+                'alignment_loss': torch.tensor(0.0),
+                'main_loss': main_loss.detach()
+            }
 
     def training_step(self, batch, batch_idx):
         return self.shared_step(batch,batch_idx)

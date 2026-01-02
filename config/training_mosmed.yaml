@@ -21,6 +21,10 @@ MODEL:
   vision_type: facebook/convnext-tiny-224
   project_dim: 768
 
+  dropout_prob: 0.3
+  alpha: 0.7
+  alignment_loss_weight: 0.2
+
 DATA:
   data: MosMedPlus
   train_csv_path: ./data/MosMedData+/prompt/train.csv

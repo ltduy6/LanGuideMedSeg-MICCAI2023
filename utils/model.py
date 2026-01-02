@@ -56,7 +56,7 @@ class VisionModel(nn.Module):
 
 class LanGuideMedSeg(nn.Module):
 
-    def __init__(self, bert_type, vision_type, project_dim=512):
+    def __init__(self, bert_type, vision_type, project_dim=512, dropout_prob=0.3, alpha=0.7):
 
         super(LanGuideMedSeg, self).__init__()
 
@@ -71,7 +71,9 @@ class LanGuideMedSeg(nn.Module):
         self.decoder4 = GuideDecoder(feature_dim[2],feature_dim[3],self.spatial_dim[2],9)
         self.decoder1 = SubpixelUpsample(2,feature_dim[3],24,4)
         self.out = UnetOutBlock(2, in_channels=24, out_channels=1)
-
+        
+        self.dropout_prob = dropout_prob
+        self.alpha = alpha
         self.visual_text_mapper = CrossAttentionTokenMapper()
 
     def forward(self, data):
@@ -91,13 +93,36 @@ class LanGuideMedSeg(nn.Module):
 
         os32 = image_features[3]
         image_tokens = os32.clone()
-        text_tokens = text_embeds[-1].clone()
+        
+        generated_visual_tokens = self.visual_text_mapper(os32)
 
         if self.training:
-            text_embeds_last = text_embeds[-1]
+            text_tokens = text_embeds[-1].clone()
+
+            batch_size = text_tokens.size(0)
+
+            guidance_tokens = torch.zeros_like(text_tokens)
+
+            for b in range(batch_size):
+                if torch.rand(1).item() < self.dropout_prob:
+                    guidance_tokens[b] = generated_visual_tokens[b]
+                else:
+                    guidance_tokens[b] = (self.alpha * text_tokens[b] + (1 - self.alpha) * generated_visual_tokens[b])
+            
+            text_embeds_last = guidance_tokens
+
+            return_info = {
+                'image_tokens': image_tokens,
+                'text_tokens': text_tokens,
+                'generated_visual_tokens': generated_visual_tokens,
+                'guidance_tokens': guidance_tokens
+            }
         else:
-            generated_text_tokens = self.visual_text_mapper(os32)
-            text_embeds_last = generated_text_tokens
+            text_embeds_last = generated_visual_tokens
+            return_info = {
+                'image_tokens': image_tokens,
+                'generated_visual_tokens': generated_visual_tokens
+            }
 
         os16 = self.decoder16(os32,image_features[2], text_embeds_last)
         os8 = self.decoder8(os16,image_features[1], text_embeds_last)
@@ -107,5 +132,5 @@ class LanGuideMedSeg(nn.Module):
 
         out = self.out(os1).sigmoid()
 
-        return out, image_tokens, text_tokens
+        return out, return_info
     
