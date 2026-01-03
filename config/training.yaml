@@ -14,7 +14,7 @@ TRAIN:
 
   model_save_path: ./save_model_qata
   model_save_filename: medseg
-  best_model_path: ./save_model_qata/medseg-v1.ckpt
+  best_model_path: ./save_model_qata/medseg.ckpt
 
 MODEL:
   bert_type: microsoft/BiomedVLP-CXR-BERT-specialized

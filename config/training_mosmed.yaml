@@ -14,7 +14,7 @@ TRAIN:
 
   model_save_path: ./save_model_mosmed
   model_save_filename: medseg
-  best_model_path: ./save_model_mosmed/medseg-v2.ckpt
+  best_model_path: ./save_model_mosmed/medseg.ckpt
 
 MODEL:
   bert_type: microsoft/BiomedVLP-CXR-BERT-specialized
