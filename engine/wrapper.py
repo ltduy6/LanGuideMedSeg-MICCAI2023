@@ -63,8 +63,7 @@ class LanGuideMedSegWrapper(pl.LightningModule):
 
             alignment_loss = F.mse_loss(visual_tokens, text_tokens)
             total_loss = main_loss + self.alignment_loss_weight * alignment_loss
-            self.log('alignment_loss', alignment_loss, prog_bar=True)
-            self.log('main_loss', main_loss, prog_bar=True)
+            self.print(f"alignment_loss: {alignment_loss}, main_loss: {main_loss}, total_loss: {total_loss}")
 
             return {
                 'loss': total_loss,
