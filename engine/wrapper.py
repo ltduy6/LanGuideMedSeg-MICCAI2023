@@ -168,3 +168,4 @@ class LanGuideMedSegWrapper(pl.LightningModule):
     def on_train_epoch_start(self):
         if self.model.use_curriculum:
             self.model.set_epoch(self.current_epoch)
+            self.print("===> set curriculum epoch: %d"%self.current_epoch)
