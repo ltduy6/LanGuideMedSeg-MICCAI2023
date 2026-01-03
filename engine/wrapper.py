@@ -120,17 +120,6 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         epoch = self.trainer.current_epoch
         stage_loss = torch.mean(torch.tensor([t[(stage+"_loss").replace('train_','')] for t in outputs])).item()
         dic = {"epoch":epoch,stage+"_loss":stage_loss}
-
-        print(outputs[0].keys())
-
-        # Log additional losses if available
-        loss_keys = ['alignment_loss', 'main_loss']
-        for loss_key in loss_keys:
-            if len(outputs) > 0 and loss_key in outputs[0]:
-                loss_values = [t[loss_key] for t in outputs if loss_key in t]
-                if loss_values:
-                    avg_loss = torch.mean(torch.tensor(loss_values)).item()
-                    dic[stage + "_" + loss_key] = avg_loss
         
         for name in metrics:
             epoch_metric = metrics[name].compute().item() 
