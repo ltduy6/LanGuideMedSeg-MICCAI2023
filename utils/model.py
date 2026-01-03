@@ -56,7 +56,7 @@ class VisionModel(nn.Module):
 
 class LanGuideMedSeg(nn.Module):
 
-    def __init__(self, bert_type, vision_type, project_dim=512, dropout_prob=0.3, alpha=0.7, use_curriculum=True):
+    def __init__(self, bert_type, vision_type, project_dim=512, dropout_prob=0.3, alpha=0.7, use_curriculum=True, max_epochs=100):
 
         super(LanGuideMedSeg, self).__init__()
 
@@ -75,6 +75,7 @@ class LanGuideMedSeg(nn.Module):
         self.dropout_prob = dropout_prob
         self.alpha = alpha
         self.use_curriculum = use_curriculum
+        self.max_epochs = max_epochs
         self.current_epoch = 0
         self.visual_text_mapper = CrossAttentionTokenMapper()
 
@@ -84,9 +85,8 @@ class LanGuideMedSeg(nn.Module):
     def get_curriculum_params(self):
         if not self.use_curriculum:
             return self.dropout_prob, self.alpha
-        
-        max_epochs = 100
-        progress = min(self.current_epoch / max_epochs, 1.0)
+
+        progress = min(self.current_epoch / self.max_epochs, 1.0)
 
         dropout_prob = self.dropout_prob * progress
 

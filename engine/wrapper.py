@@ -24,7 +24,8 @@ class LanGuideMedSegWrapper(pl.LightningModule):
             args.project_dim,
             args.dropout_prob,
             args.alpha,
-            args.use_curriculum
+            args.use_curriculum,
+            args.max_epochs
         )
 
         self.lr = args.lr
