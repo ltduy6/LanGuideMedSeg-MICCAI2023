@@ -63,7 +63,6 @@ class LanGuideMedSegWrapper(pl.LightningModule):
 
             alignment_loss = F.mse_loss(visual_tokens, text_tokens)
             total_loss = main_loss + self.alignment_loss_weight * alignment_loss
-            self.print(f"alignment_loss: {alignment_loss}, main_loss: {main_loss}, total_loss: {total_loss}")
 
             return {
                 'loss': total_loss,
@@ -121,6 +120,16 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         epoch = self.trainer.current_epoch
         stage_loss = torch.mean(torch.tensor([t[(stage+"_loss").replace('train_','')] for t in outputs])).item()
         dic = {"epoch":epoch,stage+"_loss":stage_loss}
+
+        # Add alignment loss for training stage
+        if stage == "train" and len(outputs) > 0 and 'alignment_loss' in outputs[0]:
+            alignment_loss = torch.mean(torch.tensor([t['alignment_loss'] for t in outputs])).item()
+            dic[stage + "_alignment_loss"] = alignment_loss
+        
+        # Add main loss for training stage
+        if stage == "train" and len(outputs) > 0 and 'main_loss' in outputs[0]:
+            main_loss = torch.mean(torch.tensor([t['main_loss'] for t in outputs])).item()
+            dic[stage + "_main_loss"] = main_loss
         
         for name in metrics:
             epoch_metric = metrics[name].compute().item() 
