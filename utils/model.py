@@ -90,7 +90,7 @@ class LanGuideMedSeg(nn.Module):
 
         dropout_prob = self.dropout_prob * progress
 
-        alpha = self.alpha (1 - 0.5 * progress)
+        alpha = self.alpha * (1 - 0.5 * progress)
 
         return dropout_prob, alpha
     
