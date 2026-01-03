@@ -121,15 +121,14 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         stage_loss = torch.mean(torch.tensor([t[(stage+"_loss").replace('train_','')] for t in outputs])).item()
         dic = {"epoch":epoch,stage+"_loss":stage_loss}
 
-        # Add alignment loss for training stage
-        if stage == "train" and len(outputs) > 0 and 'alignment_loss' in outputs[0]:
-            alignment_loss = torch.mean(torch.tensor([t['alignment_loss'] for t in outputs])).item()
-            dic[stage + "_alignment_loss"] = alignment_loss
-        
-        # Add main loss for training stage
-        if stage == "train" and len(outputs) > 0 and 'main_loss' in outputs[0]:
-            main_loss = torch.mean(torch.tensor([t['main_loss'] for t in outputs])).item()
-            dic[stage + "_main_loss"] = main_loss
+        # Log additional losses if available
+        loss_keys = ['alignment_loss', 'main_loss']
+        for loss_key in loss_keys:
+            if len(outputs) > 0 and loss_key in outputs[0]:
+                loss_values = [t[loss_key] for t in outputs if loss_key in t]
+                if loss_values:
+                    avg_loss = torch.mean(torch.tensor(loss_values)).item()
+                    dic[stage + "_" + loss_key] = avg_loss
         
         for name in metrics:
             epoch_metric = metrics[name].compute().item() 
