@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import DataLoader
-from utils.dataset import QaTa
+from utils.dataset import QaTa,MosMedPlus
 import utils.config as config
 from torch.optim import lr_scheduler
 from engine.wrapper import LanGuideMedSegWrapper
@@ -35,17 +35,32 @@ if __name__ == '__main__':
     args = get_parser()
     print("cuda:",torch.cuda.is_available())
 
-    ds_train = QaTa(csv_path=args.train_csv_path,
-                    root_path=args.train_root_path,
-                    tokenizer=args.bert_type,
-                    image_size=args.image_size,
-                    mode='train')
+    if args.data == 'QaTa':
+        ds_train = QaTa(csv_path=args.train_csv_path,
+                        root_path=args.train_root_path,
+                        tokenizer=args.bert_type,
+                        image_size=args.image_size,
+                        mode='train')
 
-    ds_valid = QaTa(csv_path=args.train_csv_path,
-                    root_path=args.train_root_path,
-                    tokenizer=args.bert_type,
-                    image_size=args.image_size,
-                    mode='valid')
+        ds_valid = QaTa(csv_path=args.train_csv_path,
+                        root_path=args.train_root_path,
+                        tokenizer=args.bert_type,
+                        image_size=args.image_size,
+                        mode='valid')
+    elif args.data == 'MosMedPlus':
+        ds_train = MosMedPlus(csv_path=args.train_csv_path,
+                        root_path=args.train_root_path,
+                        tokenizer=args.bert_type,
+                        image_size=args.image_size,
+                        mode='train')
+
+        ds_valid = MosMedPlus(csv_path=args.val_csv_path,
+                        root_path=args.val_root_path,
+                        tokenizer=args.bert_type,
+                        image_size=args.image_size,
+                        mode='valid')
+    else:
+        raise NotImplementedError('Dataset not implemented!')
 
 
     dl_train = DataLoader(ds_train, batch_size=args.train_batch_size, shuffle=True, num_workers=args.train_batch_size)

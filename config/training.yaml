@@ -22,6 +22,7 @@ MODEL:
   project_dim: 768
 
 DATA:
+  data: QaTa
   train_csv_path: ./data/QaTa-COV19-v2/prompt/train.csv
   train_root_path: ./data/QaTa-COV19-v2/Train
 
