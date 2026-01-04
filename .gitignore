@@ -1,2 +1,10 @@
 /data/
 data.zip
+*__pycache__/
+/lightning_logs/
+/logs/
+/logs_mosmed/
+save_model/
+save_model_mosmed/
+save_model_qata/
+/logs_qata/

@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 
 import pytorch_lightning as pl  
 
-from utils.dataset import QaTa
+from utils.dataset import QaTa,MosMedPlus
 import utils.config as config
 
 
@@ -33,15 +33,26 @@ if __name__ == '__main__':
     model = LanGuideMedSegWrapper(args)
 
     torch.serialization.add_safe_globals([config.CfgNode])
-    checkpoint = torch.load('./save_model/medseg.ckpt',map_location='cpu',weights_only=False)["state_dict"]
-    model.load_state_dict(checkpoint,strict=True)
 
-    # dataloader
-    ds_test = QaTa(csv_path=args.test_csv_path,
-                    root_path=args.test_root_path,
-                    tokenizer=args.bert_type,
-                    image_size=args.image_size,
-                    mode='test')
+    if args.data == 'QaTa':
+        checkpoint = torch.load(args.best_model_path,map_location='cpu',weights_only=False)["state_dict"]
+        model.load_state_dict(checkpoint,strict=True)
+        ds_test = QaTa(csv_path=args.test_csv_path,
+                        root_path=args.test_root_path,
+                        tokenizer=args.bert_type,
+                        image_size=args.image_size,
+                        mode='test')
+    elif args.data == 'MosMedPlus':
+        checkpoint = torch.load(args.best_model_path,map_location='cpu',weights_only=False)["state_dict"]
+        model.load_state_dict(checkpoint,strict=True)
+        ds_test = MosMedPlus(csv_path=args.test_csv_path,
+                        root_path=args.test_root_path,
+                        tokenizer=args.bert_type,
+                        image_size=args.image_size,
+                        mode='test')
+    else:
+        raise NotImplementedError("Dataset not implemented.")
+    
     dl_test = DataLoader(ds_test, batch_size=args.valid_batch_size, shuffle=False, num_workers=8)
 
     trainer = pl.Trainer(accelerator='gpu',devices=1) 
