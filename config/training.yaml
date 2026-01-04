@@ -12,8 +12,9 @@ TRAIN:
 
   device: 1
 
-  model_save_path: ./save_model
+  model_save_path: ./save_model_qata
   model_save_filename: medseg
+  best_model_path: ./save_model_qata/medseg.ckpt
 
 MODEL:
   model_type: LanGuideMedSeg_DINOv2_Adaptive
