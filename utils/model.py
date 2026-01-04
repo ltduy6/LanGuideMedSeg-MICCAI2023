@@ -156,7 +156,7 @@ class LanGuideMedSeg_DINOv2(nn.Module):
         self.out = UnetOutBlock(2, in_channels=24, out_channels=1)
 
     def forward(self, data):
-        image, text, gt = data
+        image, text = data
         
         if image.shape[1] == 1:   
             image = repeat(image, 'b 1 h w -> b c h w', c=3)
@@ -200,7 +200,9 @@ class LanGuideMedSeg_DINOv2(nn.Module):
         out = self.out(os1).sigmoid()  # -> [B, 1, 224, 224]
 
         print(out.shape)
-        
+        print("os4 shape:", os4.shape)
+        print("os1 shape:", os1.shape)
+
         return out
 
 
