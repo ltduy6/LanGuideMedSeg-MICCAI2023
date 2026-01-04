@@ -200,10 +200,6 @@ class LanGuideMedSeg_DINOv2(nn.Module):
 
         out = self.out(os1).sigmoid()  # -> [B, 1, 224, 224]
 
-        print(out.shape)
-        print("os4 shape:", os4.shape)
-        print("os1 shape:", os1.shape)
-
         return out
 
 
