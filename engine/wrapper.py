@@ -1,4 +1,4 @@
-from utils.model import LanGuideMedSeg
+from utils.model import LanGuideMedSeg, LanGuideMedSeg_DINOv2, LanGuideMedSeg_DINOv2_Adaptive
 from monai.losses import DiceCELoss
 from torchmetrics import Accuracy,Dice
 from torchmetrics.classification import BinaryJaccardIndex
@@ -17,7 +17,15 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         
         super(LanGuideMedSegWrapper, self).__init__()
         
-        self.model = LanGuideMedSeg(args.bert_type, args.vision_type, args.project_dim)
+        model_type = args.model_type
+        
+        if model_type == 'LanGuideMedSeg_DINOv2':
+            self.model = LanGuideMedSeg_DINOv2(args.bert_type, args.vision_type, args.project_dim)
+        elif model_type == 'LanGuideMedSeg_DINOv2_Adaptive':
+            self.model = LanGuideMedSeg_DINOv2_Adaptive(args.bert_type, args.vision_type, args.project_dim)
+        else:
+            self.model = LanGuideMedSeg(args.bert_type, args.vision_type, args.project_dim)
+
         self.lr = args.lr
         self.history = {}
         

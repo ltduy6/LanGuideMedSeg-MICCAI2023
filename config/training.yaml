@@ -16,8 +16,9 @@ TRAIN:
   model_save_filename: medseg
 
 MODEL:
+  model_type: LanGuideMedSeg_DINOv2
   bert_type: microsoft/BiomedVLP-CXR-BERT-specialized
-  vision_type: facebook/convnext-tiny-224
+  vision_type: facebook/dinov2-base
   project_dim: 768
 
 DATA:
