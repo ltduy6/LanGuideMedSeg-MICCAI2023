@@ -119,33 +119,34 @@ class LanGuideMedSeg_DINOv2(nn.Module):
             'layer_9': nn.Sequential(  # Early layer -> coarser features
                 nn.Conv2d(base_dim, 768, 1),
                 nn.BatchNorm2d(768),
-                nn.GELU()
-            ),  # 16x16 -> keep at 768 dim (os32 equivalent)
+                nn.GELU(),
+                nn.AdaptiveAvgPool2d((7, 7))
+            ), 
             
             'layer_10': nn.Sequential(  # Mid layer
                 nn.Conv2d(base_dim, 384, 1),
                 nn.BatchNorm2d(384),
                 nn.GELU(),
-                nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False)
-            ),  # 16x16 -> 32x32, 384 dim (os16 equivalent)
+                nn.Upsample(size=(14, 14), mode='bilinear', align_corners=False)
+            ), 
             
             'layer_11': nn.Sequential(  # Late layer
                 nn.Conv2d(base_dim, 192, 1),
                 nn.BatchNorm2d(192),
                 nn.GELU(),
-                nn.Upsample(scale_factor=4, mode='bilinear', align_corners=False)
-            ),  # 16x16 -> 64x64, 192 dim (os8 equivalent)
+                nn.Upsample(size=(28, 28), mode='bilinear', align_corners=False)
+            ),
             
             'layer_12': nn.Sequential(  # Final layer -> finest features
                 nn.Conv2d(base_dim, 96, 1),
                 nn.BatchNorm2d(96),
                 nn.GELU(),
-                nn.Upsample(scale_factor=8, mode='bilinear', align_corners=False)
-            ),  # 16x16 -> 128x128, 96 dim (os4 equivalent)
+                nn.Upsample(size=(56, 56), mode='bilinear', align_corners=False)
+            ),
         })
         
         # Adjusted spatial dimensions to match DINOv2 output scales
-        self.spatial_dim = [16, 32, 64, 128]  # Spatial sizes after feature pyramid
+        self.spatial_dim = [7, 14, 28, 56]  # Spatial sizes after feature pyramid
         feature_dim = [768, 384, 192, 96]
         
         # Decoders (same as original LanGuideMedSeg but with adjusted spatial dims)
