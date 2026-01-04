@@ -217,25 +217,29 @@ class LanGuideMedSeg_DINOv2_Adaptive(nn.Module):
         # Determine base dimension based on DINOv2 variant
         if 'small' in vision_type:
             base_dim = 384
+            feature_dim = [384, 192, 96, 48]
         elif 'large' in vision_type:
             base_dim = 1024
+            feature_dim = [1024, 512, 256, 128]
         elif 'giant' in vision_type:
             base_dim = 1536
+            feature_dim = [1536, 768, 384, 192]
         else:  # base
             base_dim = 768
+            feature_dim = [768, 384, 192, 96]
             
         self.base_dim = base_dim
+        self.feature_dim = feature_dim
         
         # Adaptive feature pyramid
         self.feature_pyramid = nn.ModuleDict({
-            'scale_1': self._make_pyramid_layer(base_dim, 768, scale=1),
-            'scale_2': self._make_pyramid_layer(base_dim, 384, scale=2),
-            'scale_3': self._make_pyramid_layer(base_dim, 192, scale=4),
-            'scale_4': self._make_pyramid_layer(base_dim, 96, scale=8),
+            'scale_1': self._make_pyramid_layer(base_dim, feature_dim[0], spatial_size=7),
+            'scale_2': self._make_pyramid_layer(base_dim, feature_dim[1], spatial_size=14),
+            'scale_3': self._make_pyramid_layer(base_dim, feature_dim[2], spatial_size=28),
+            'scale_4': self._make_pyramid_layer(base_dim, feature_dim[3], spatial_size=56),
         })
-        
-        self.spatial_dim = [16, 32, 64, 128]
-        feature_dim = [768, 384, 192, 96]
+
+        self.spatial_dim = [7, 14, 28, 56]
         
         self.decoder16 = GuideDecoder(feature_dim[0], feature_dim[1], self.spatial_dim[0], 24)
         self.decoder8 = GuideDecoder(feature_dim[1], feature_dim[2], self.spatial_dim[1], 12)
@@ -243,16 +247,15 @@ class LanGuideMedSeg_DINOv2_Adaptive(nn.Module):
         self.decoder1 = SubpixelUpsample(2, feature_dim[3], 24, 4)
         self.out = UnetOutBlock(2, in_channels=24, out_channels=1)
     
-    def _make_pyramid_layer(self, in_dim, out_dim, scale=1):
-        """Create a pyramid layer with optional upsampling"""
-        layers = [
+    def _make_pyramid_layer(self, in_dim, out_dim, spatial_size):
+        """Create a pyramid layer with target spatial size"""
+        return nn.Sequential(
             nn.Conv2d(in_dim, out_dim, 1),
             nn.BatchNorm2d(out_dim),
-            nn.GELU()
-        ]
-        if scale > 1:
-            layers.append(nn.Upsample(scale_factor=scale, mode='bilinear', align_corners=False))
-        return nn.Sequential(*layers)
+            nn.GELU(),
+            nn.AdaptiveAvgPool2d((spatial_size, spatial_size)) if spatial_size < 16 
+            else nn.Upsample(size=(spatial_size, spatial_size), mode='bilinear', align_corners=False)
+        )
 
     def forward(self, data):
         image, text = data
