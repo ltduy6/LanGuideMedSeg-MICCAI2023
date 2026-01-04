@@ -255,7 +255,7 @@ class LanGuideMedSeg_DINOv2_Adaptive(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, data):
-        image, text, gt = data
+        image, text = data
         
         if image.shape[1] == 1:   
             image = repeat(image, 'b 1 h w -> b c h w', c=3)
