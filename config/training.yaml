@@ -12,15 +12,21 @@ TRAIN:
 
   device: 1
 
-  model_save_path: ./save_model
+  model_save_path: ./save_model_qata
   model_save_filename: medseg
+  best_model_path: ./save_model_qata/medseg.ckpt
 
 MODEL:
-  bert_type: microsoft/BiomedVLP-CXR-BERT-specialized
+  bert_type: emilyalsentzer/Bio_ClinicalBERT
   vision_type: facebook/convnext-tiny-224
   project_dim: 768
 
+  dropout_prob: 0.3
+  alpha: 0.7
+  alignment_loss_weight: 0.3
+
 DATA:
+  data: QaTa
   train_csv_path: ./data/QaTa-COV19-v2/prompt/train.csv
   train_root_path: ./data/QaTa-COV19-v2/Train
 

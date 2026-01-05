@@ -3,6 +3,5 @@ data.zip
 /logs/
 /save_model
 /lightning_logs/
-/config/*.yaml
 *__pycache__/
 /save_model_mosmed
