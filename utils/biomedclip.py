@@ -272,48 +272,48 @@ class BiomedCLIPEncoder(nn.Module):
     
     # Replace the encode_text method in BiomedCLIPEncoder class
 
-def encode_text(self, input_ids, attention_mask=None):
-    """Extract text features from BERT"""
-    if attention_mask is None:
-        attention_mask = (input_ids != 0).long()
-    
-    # BERT embeddings
-    embedding_output = self.bert.embeddings(
-        input_ids=input_ids,
-        token_type_ids=None
-    )
-    
-    # Forward through BERT layers
-    hidden_states = []
-    extended_attention_mask = self.bert.get_extended_attention_mask(
-        attention_mask, input_ids.shape
-    )
-    
-    hidden = embedding_output
-    for layer in self.bert.encoder.layer:
-        hidden = layer(hidden, extended_attention_mask)[0]
-        hidden_states.append(hidden)
-    
-    # Pool CLS token - this returns a tensor, not a dict
-    pooled_output = self.text_encoder.pooler(hidden, attention_mask)  # Returns tensor [B, 768]
-    
-    # BiomedCLIP projection
-    if hasattr(self.text_encoder, 'proj'):
-        clip_features = self.text_encoder.proj(pooled_output)
-    else:
-        clip_features = pooled_output
-    
-    # Task-specific projection
-    project_embed = self.text_project_head(pooled_output)
-    
-    # Return dict with proper structure
-    return {
-        "feature": hidden_states,           # [12 x [B, L, 768]]
-        "last_hidden_state": hidden,        # [B, L, 768] - last BERT layer output
-        "pooled": pooled_output,            # [B, 768] - pooled CLS token
-        "project": project_embed,           # [B, project_dim]
-        "clip_features": clip_features      # [B, 512]
-    }
+    def encode_text(self, input_ids, attention_mask=None):
+        """Extract text features from BERT"""
+        if attention_mask is None:
+            attention_mask = (input_ids != 0).long()
+        
+        # BERT embeddings
+        embedding_output = self.bert.embeddings(
+            input_ids=input_ids,
+            token_type_ids=None
+        )
+        
+        # Forward through BERT layers
+        hidden_states = []
+        extended_attention_mask = self.bert.get_extended_attention_mask(
+            attention_mask, input_ids.shape
+        )
+        
+        hidden = embedding_output
+        for layer in self.bert.encoder.layer:
+            hidden = layer(hidden, extended_attention_mask)[0]
+            hidden_states.append(hidden)
+        
+        # Pool CLS token - this returns a tensor, not a dict
+        pooled_output = self.text_encoder.pooler(hidden, attention_mask)  # Returns tensor [B, 768]
+        
+        # BiomedCLIP projection
+        if hasattr(self.text_encoder, 'proj'):
+            clip_features = self.text_encoder.proj(pooled_output)
+        else:
+            clip_features = pooled_output
+        
+        # Task-specific projection
+        project_embed = self.text_project_head(pooled_output)
+        
+        # Return dict with proper structure
+        return {
+            "feature": hidden_states,           # [12 x [B, L, 768]]
+            "last_hidden_state": hidden,        # [B, L, 768] - last BERT layer output
+            "pooled": pooled_output,            # [B, 768] - pooled CLS token
+            "project": project_embed,           # [B, project_dim]
+            "clip_features": clip_features      # [B, 512]
+        }
 
 
 class LanGuideMedSeg_BiomedCLIP(nn.Module):
