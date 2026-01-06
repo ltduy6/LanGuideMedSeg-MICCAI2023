@@ -473,12 +473,15 @@ class LanGuideMedSeg_BiomedCLIP_WithContrastive(nn.Module):
         vision_features = image_output['feature']
         image_clip = image_output['clip_features']
         
-        text_output = self.biomedclip.encode_text(
-            text['input_ids'], 
-            text.get('attention_mask')
-        )
-        text_clip = text_output['clip_features']
-        text_guidance = text_output['last_hidden_state']
+        if isinstance(text, dict):
+            text_output = self.biomedclip.encode_text(
+                text['input_ids'], 
+                text.get('attention_mask')
+            )
+            text_guidance = text_output['last_hidden_state']  # [B, L, 768]
+        else:
+            # If text is already encoded tensor
+            text_guidance = text
         
         # Multi-scale features
         selected_layers = [vision_features[8], vision_features[9],
