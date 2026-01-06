@@ -10,6 +10,7 @@ class BiomedCLIPEncoder(nn.Module):
     """
     Unified BiomedCLIP Encoder for both vision and text.
     Uses a single shared model instance.
+    Properly handles TimmModel wrapper structure.
     """
     
     def __init__(self, model_name="hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224", project_dim=512):
@@ -19,9 +20,12 @@ class BiomedCLIPEncoder(nn.Module):
         self.model, _, _ = open_clip.create_model_and_transforms(model_name)
         self.tokenizer = open_clip.get_tokenizer(model_name)
         
-        # Extract vision and text encoders (they reference the same base model)
-        self.visual = self.model.visual
+        # Extract vision and text encoders
+        self.visual = self.model.visual  # TimmModel wrapper
         self.text_encoder = self.model.text
+        
+        # Access the actual ViT through trunk
+        self.vit = self.visual.trunk
         
         # ViT-B/16 configuration
         self.patch_size = 16
@@ -51,43 +55,45 @@ class BiomedCLIPEncoder(nn.Module):
         """
         batch_size = x.shape[0]
         
-        # Patch embedding
-        x = self.visual.conv1(x)  # [B, 768, 14, 14]
-        x = x.reshape(batch_size, self.hidden_size, -1)  # [B, 768, 196]
-        x = x.permute(0, 2, 1)  # [B, 196, 768]
+        # Access ViT trunk from TimmModel
+        vit = self.vit
         
-        # Add CLS token and positional embedding
-        cls_token = self.visual.class_embedding.to(x.dtype) + torch.zeros(
-            batch_size, 1, self.hidden_size, dtype=x.dtype, device=x.device
-        )
-        x = torch.cat([cls_token, x], dim=1)  # [B, 197, 768]
-        x = x + self.visual.positional_embedding.to(x.dtype)
+        # Patch embedding using timm's patch_embed
+        x = vit.patch_embed(x)  # [B, 196, 768]
         
-        # Layer norm
-        x = self.visual.ln_pre(x)
+        # Add cls token and positional embedding
+        cls_token = vit.cls_token.expand(batch_size, -1, -1)  # [B, 1, 768]
+        x = torch.cat((cls_token, x), dim=1)  # [B, 197, 768]
+        x = vit.pos_drop(x + vit.pos_embed)
         
         # Collect features from all transformer blocks
         hidden_states = []
-        for block in self.visual.transformer.resblocks:
+        for block in vit.blocks:
             x = block(x)
             hidden_states.append(x)
         
-        # Final processing for CLS token
-        cls_final = self.visual.ln_post(x[:, 0, :])
+        # Final layer norm
+        x = vit.norm(x)
         
-        # Use BiomedCLIP's original projection
-        if self.visual.proj is not None:
-            clip_features = cls_final @ self.visual.proj
+        # Extract CLS token
+        cls_features = x[:, 0]  # [B, 768]
+        
+        # Use BiomedCLIP's projection from TimmModel.head.proj
+        if hasattr(self.visual.head, 'proj'):
+            clip_features = self.visual.head.proj(cls_features)  # [B, 512]
         else:
-            clip_features = cls_final
+            clip_features = cls_features
         
         # Additional task-specific projection
-        project_embed = self.vision_project_head(cls_final)
+        project_embed = self.vision_project_head(cls_features)
         
         # Process hidden states to spatial format
         processed_features = []
         for hidden_state in hidden_states:
-            patch_tokens = hidden_state[:, 1:, :]  # Remove CLS token
+            # Remove CLS token: [B, 197, 768] -> [B, 196, 768]
+            patch_tokens = hidden_state[:, 1:, :]
+            
+            # Reshape to spatial [B, 768, 14, 14]
             spatial_features = rearrange(
                 patch_tokens,
                 'b (h w) c -> b c h w',
@@ -96,9 +102,9 @@ class BiomedCLIPEncoder(nn.Module):
             processed_features.append(spatial_features)
         
         return {
-            "feature": processed_features,      # Multi-scale spatial features
-            "project": project_embed,           # Task-specific projection
-            "clip_features": clip_features      # Original CLIP features
+            "feature": processed_features,      # Multi-scale spatial features [12 x [B, 768, 14, 14]]
+            "project": project_embed,           # Task-specific projection [B, project_dim]
+            "clip_features": clip_features      # Original CLIP features [B, 512]
         }
     
     def encode_text(self, input_ids, attention_mask=None):
@@ -118,7 +124,7 @@ class BiomedCLIPEncoder(nn.Module):
             hidden_states.append(x.permute(1, 0, 2))  # LND -> NLD
         
         # Final layer norm
-        x = x.permute(1, 0, 2)
+        x = x.permute(1, 0, 2)  # LND -> NLD
         x = self.text_encoder.ln_final(x)
         
         # Extract features from EOT token
@@ -135,9 +141,9 @@ class BiomedCLIPEncoder(nn.Module):
         project_embed = self.text_project_head(text_features)
         
         return {
-            "feature": hidden_states,           # All layer features
-            "project": project_embed,           # Task-specific projection
-            "clip_features": clip_features      # Original CLIP features
+            "feature": hidden_states,           # All layer features [12 x [B, L, 768]]
+            "project": project_embed,           # Task-specific projection [B, project_dim]
+            "clip_features": clip_features      # Original CLIP features [B, 512]
         }
 
 
@@ -157,38 +163,38 @@ class LanGuideMedSeg_BiomedCLIP(nn.Module):
         
         base_dim = 768
         
-        # Feature pyramid
+        # Feature pyramid to create multi-scale features from ViT
         self.feature_pyramid = nn.ModuleDict({
             'layer_9': nn.Sequential(
                 nn.Conv2d(base_dim, 768, 1),
                 nn.BatchNorm2d(768),
                 nn.GELU(),
-                nn.AdaptiveAvgPool2d((7, 7))
+                nn.AdaptiveAvgPool2d((7, 7))  # 14x14 -> 7x7
             ),
             'layer_10': nn.Sequential(
                 nn.Conv2d(base_dim, 384, 1),
                 nn.BatchNorm2d(384),
                 nn.GELU(),
-                nn.Upsample(size=(14, 14), mode='bilinear', align_corners=False)
+                nn.Upsample(size=(14, 14), mode='bilinear', align_corners=False)  # Keep 14x14
             ),
             'layer_11': nn.Sequential(
                 nn.Conv2d(base_dim, 192, 1),
                 nn.BatchNorm2d(192),
                 nn.GELU(),
-                nn.Upsample(size=(28, 28), mode='bilinear', align_corners=False)
+                nn.Upsample(size=(28, 28), mode='bilinear', align_corners=False)  # 14x14 -> 28x28
             ),
             'layer_12': nn.Sequential(
                 nn.Conv2d(base_dim, 96, 1),
                 nn.BatchNorm2d(96),
                 nn.GELU(),
-                nn.Upsample(size=(56, 56), mode='bilinear', align_corners=False)
+                nn.Upsample(size=(56, 56), mode='bilinear', align_corners=False)  # 14x14 -> 56x56
             ),
         })
         
         self.spatial_dim = [7, 14, 28, 56]
         feature_dim = [768, 384, 192, 96]
         
-        # Decoders
+        # Decoders with text guidance
         self.decoder16 = GuideDecoder(feature_dim[0], feature_dim[1], self.spatial_dim[0], 24)
         self.decoder8 = GuideDecoder(feature_dim[1], feature_dim[2], self.spatial_dim[1], 12)
         self.decoder4 = GuideDecoder(feature_dim[2], feature_dim[3], self.spatial_dim[2], 9)
@@ -203,12 +209,12 @@ class LanGuideMedSeg_BiomedCLIP(nn.Module):
         
         # Encode with shared BiomedCLIP
         image_output = self.biomedclip.encode_image(image)
-        vision_features = image_output['feature']
+        vision_features = image_output['feature']  # List of 12 layers [B, 768, 14, 14]
         
         text_output = self.biomedclip.encode_text(text['input_ids'], text.get('attention_mask'))
-        text_embeds = text_output['feature']
+        text_embeds = text_output['feature']  # List of 12 layers [B, L, 768]
         
-        # Multi-scale features
+        # Multi-scale features from last 4 ViT blocks (layers 9, 10, 11, 12)
         selected_layers = [vision_features[8], vision_features[9],
                           vision_features[10], vision_features[11]]
         
@@ -216,21 +222,27 @@ class LanGuideMedSeg_BiomedCLIP(nn.Module):
         for idx, (layer_name, layer_feature) in enumerate(zip(
             ['layer_9', 'layer_10', 'layer_11', 'layer_12'], selected_layers)):
             
+            # Apply feature pyramid transformation
             transformed = self.feature_pyramid[layer_name](layer_feature)
+            # Convert to sequence format [B, H*W, C]
             seq_feature = rearrange(transformed, 'b c h w -> b (h w) c')
             image_features.append(seq_feature)
         
-        text_guidance = text_embeds[-1]
+        # Use last text layer for guidance
+        text_guidance = text_embeds[-1]  # [B, L, 768]
         
-        # Decode
-        os32 = image_features[0]
-        os16 = self.decoder16(os32, image_features[1], text_guidance)
-        os8 = self.decoder8(os16, image_features[2], text_guidance)
-        os4 = self.decoder4(os8, image_features[3], text_guidance)
+        # Decoder pathway with text guidance
+        os32 = image_features[0]  # [B, 49, 768] (7x7)
+        os16 = self.decoder16(os32, image_features[1], text_guidance)  # [B, 196, 384] (14x14)
+        os8 = self.decoder8(os16, image_features[2], text_guidance)    # [B, 784, 192] (28x28)
+        os4 = self.decoder4(os8, image_features[3], text_guidance)     # [B, 3136, 96] (56x56)
         
+        # Reshape and upsample
         os4 = rearrange(os4, 'B (H W) C -> B C H W', H=self.spatial_dim[-1], W=self.spatial_dim[-1])
-        os1 = self.decoder1(os4)
-        out = self.out(os1).sigmoid()
+        os1 = self.decoder1(os4)  # [B, 24, 224, 224]
+        
+        # Final output
+        out = self.out(os1).sigmoid()  # [B, 1, 224, 224]
         
         return out
 
@@ -296,13 +308,13 @@ class LanGuideMedSeg_BiomedCLIP_WithContrastive(nn.Module):
         # Encode with shared BiomedCLIP
         image_output = self.biomedclip.encode_image(image)
         vision_features = image_output['feature']
-        image_clip = image_output['clip_features']      # Original CLIP features
-        image_project = image_output['project']         # Task-specific projection
+        image_clip = image_output['clip_features']      # [B, 512] - Original CLIP features
+        image_project = image_output['project']         # [B, project_dim] - Task-specific
         
         text_output = self.biomedclip.encode_text(text['input_ids'], text.get('attention_mask'))
         text_embeds = text_output['feature']
-        text_clip = text_output['clip_features']        # Original CLIP features
-        text_project = text_output['project']           # Task-specific projection
+        text_clip = text_output['clip_features']        # [B, 512] - Original CLIP features
+        text_project = text_output['project']           # [B, project_dim] - Task-specific
         
         # Multi-scale features
         selected_layers = [vision_features[8], vision_features[9],
@@ -329,8 +341,7 @@ class LanGuideMedSeg_BiomedCLIP_WithContrastive(nn.Module):
         out = self.out(os1).sigmoid()
         
         if return_embeddings:
-            # Can return either CLIP features (pre-trained) or task-specific projections
-            # For contrastive loss, use CLIP features to maintain pre-trained alignment
+            # Return original CLIP features to maintain pre-trained alignment
             return out, image_clip, text_clip
         
         return out
