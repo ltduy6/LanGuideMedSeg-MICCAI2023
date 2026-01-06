@@ -1,4 +1,8 @@
 from utils.model import LanGuideMedSeg
+from utils.biomedclip import (
+    LanGuideMedSeg_BiomedCLIP,
+    LanGuideMedSeg_BiomedCLIP_WithContrastive
+)
 from monai.losses import DiceCELoss
 from torchmetrics import Accuracy,Dice
 from torchmetrics.classification import BinaryJaccardIndex
@@ -17,7 +21,26 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         
         super(LanGuideMedSegWrapper, self).__init__()
         
-        self.model = LanGuideMedSeg(args.bert_type, args.vision_type, args.project_dim)
+        model_type = args.model_type
+
+        if model_type == "LanGuideMedSeg_BiomedCLIP":
+            self.model = LanGuideMedSeg_BiomedCLIP(
+                model_name=getattr(args, 'biomedclip_model', 
+                                  "hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224"),
+                project_dim=args.project_dim
+            )
+            self.use_contrastive = False
+        elif model_type == 'LanGuideMedSeg_BiomedCLIP_WithContrastive':
+            self.model = LanGuideMedSeg_BiomedCLIP_WithContrastive(
+                model_name=getattr(args, 'biomedclip_model',
+                                  "hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224"),
+                project_dim=args.project_dim
+            )
+            self.use_contrastive = True
+        else:
+            self.model = LanGuideMedSeg(args.bert_type, args.vision_type, args.project_dim)
+            self.use_contrastive = False
+            
         self.lr = args.lr
         self.history = {}
         
