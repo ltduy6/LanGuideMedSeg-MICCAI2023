@@ -10,7 +10,7 @@ class BiomedCLIPEncoder(nn.Module):
     """
     Unified BiomedCLIP Encoder for both vision and text.
     Uses a single shared model instance.
-    Properly handles TimmModel wrapper structure.
+    Properly handles TimmModel wrapper for vision and HFTextEncoder (BERT) for text.
     """
     
     def __init__(self, model_name="hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224", project_dim=512):
@@ -22,10 +22,13 @@ class BiomedCLIPEncoder(nn.Module):
         
         # Extract vision and text encoders
         self.visual = self.model.visual  # TimmModel wrapper
-        self.text_encoder = self.model.text
+        self.text_encoder = self.model.text  # HFTextEncoder (BERT)
         
         # Access the actual ViT through trunk
         self.vit = self.visual.trunk
+        
+        # Access BERT model
+        self.bert = self.text_encoder.transformer
         
         # ViT-B/16 configuration
         self.patch_size = 16
@@ -109,36 +112,42 @@ class BiomedCLIPEncoder(nn.Module):
     
     def encode_text(self, input_ids, attention_mask=None):
         """
-        Encode text and return features
-        input_ids: [B, L]
+        Encode text using BERT and return features
+        input_ids: [B, L] - tokenized text
+        attention_mask: [B, L] - attention mask (optional)
         """
-        # BiomedCLIP text encoding
-        x = self.text_encoder.token_embedding(input_ids)
-        x = x + self.text_encoder.positional_embedding
-        x = x.permute(1, 0, 2)  # NLD -> LND
+        # BERT expects attention_mask
+        if attention_mask is None:
+            attention_mask = (input_ids != 0).long()  # Create mask from padding
         
-        # Collect features from all transformer blocks
+        # Get BERT embeddings
+        embedding_output = self.bert.embeddings(
+            input_ids=input_ids,
+            token_type_ids=None
+        )
+        
+        # Collect features from all BERT layers
         hidden_states = []
-        for block in self.text_encoder.transformer.resblocks:
-            x = block(x)
-            hidden_states.append(x.permute(1, 0, 2))  # LND -> NLD
+        extended_attention_mask = self.bert.get_extended_attention_mask(
+            attention_mask, input_ids.shape
+        )
         
-        # Final layer norm
-        x = x.permute(1, 0, 2)  # LND -> NLD
-        x = self.text_encoder.ln_final(x)
+        hidden = embedding_output
+        for layer in self.bert.encoder.layer:
+            hidden = layer(hidden, extended_attention_mask)[0]
+            hidden_states.append(hidden)
         
-        # Extract features from EOT token
-        eot_indices = input_ids.argmax(dim=-1)
-        text_features = x[torch.arange(x.shape[0]), eot_indices]
+        # Use pooler to get CLS token representation
+        pooled_output = self.text_encoder.pooler(hidden)  # [B, 768]
         
-        # Use BiomedCLIP's original projection
-        if self.text_encoder.text_projection is not None:
-            clip_features = text_features @ self.text_encoder.text_projection
+        # Use BiomedCLIP's text projection
+        if hasattr(self.text_encoder, 'proj'):
+            clip_features = self.text_encoder.proj(pooled_output)  # [B, 512]
         else:
-            clip_features = text_features
+            clip_features = pooled_output
         
         # Additional task-specific projection
-        project_embed = self.text_project_head(text_features)
+        project_embed = self.text_project_head(pooled_output)
         
         return {
             "feature": hidden_states,           # All layer features [12 x [B, L, 768]]
@@ -211,8 +220,11 @@ class LanGuideMedSeg_BiomedCLIP(nn.Module):
         image_output = self.biomedclip.encode_image(image)
         vision_features = image_output['feature']  # List of 12 layers [B, 768, 14, 14]
         
-        text_output = self.biomedclip.encode_text(text['input_ids'], text.get('attention_mask'))
-        text_embeds = text_output['feature']  # List of 12 layers [B, L, 768]
+        text_output = self.biomedclip.encode_text(
+            text['input_ids'], 
+            text.get('attention_mask')
+        )
+        text_embeds = text_output['feature']  # List of 12 BERT layers [B, L, 768]
         
         # Multi-scale features from last 4 ViT blocks (layers 9, 10, 11, 12)
         selected_layers = [vision_features[8], vision_features[9],
@@ -228,7 +240,7 @@ class LanGuideMedSeg_BiomedCLIP(nn.Module):
             seq_feature = rearrange(transformed, 'b c h w -> b (h w) c')
             image_features.append(seq_feature)
         
-        # Use last text layer for guidance
+        # Use last BERT layer for guidance
         text_guidance = text_embeds[-1]  # [B, L, 768]
         
         # Decoder pathway with text guidance
@@ -311,7 +323,10 @@ class LanGuideMedSeg_BiomedCLIP_WithContrastive(nn.Module):
         image_clip = image_output['clip_features']      # [B, 512] - Original CLIP features
         image_project = image_output['project']         # [B, project_dim] - Task-specific
         
-        text_output = self.biomedclip.encode_text(text['input_ids'], text.get('attention_mask'))
+        text_output = self.biomedclip.encode_text(
+            text['input_ids'], 
+            text.get('attention_mask')
+        )
         text_embeds = text_output['feature']
         text_clip = text_output['clip_features']        # [B, 512] - Original CLIP features
         text_project = text_output['project']           # [B, project_dim] - Task-specific
