@@ -50,6 +50,9 @@ class BiomedCLIPSeg(nn.Module):
         self.decoder.requires_grad_(not freeze_decoder)
 
     def _forward_vit(self, x, output_hidden_states: bool = True):
+        if x.shape[1] == 1:
+            x = x.repeat(1, 3, 1, 1)
+            
         ViT = self.biomedclip.visual.trunk
         x = ViT.patch_embed(x)
         x = ViT._pos_embed(x)
