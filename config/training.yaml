@@ -17,6 +17,7 @@ TRAIN:
   best_model_path: ./save_model_qata/medseg.ckpt
 
 MODEL:
+  model_type: LanGuideMedSeg_BiomedCLIP
   bert_type: emilyalsentzer/Bio_ClinicalBERT
   vision_type: facebook/convnext-tiny-224
   biomedclip_hf_api: hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224

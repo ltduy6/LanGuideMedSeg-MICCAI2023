@@ -171,5 +171,6 @@ class BiomedCLIPSeg(nn.Module):
         # step 3: forward both the pooled output and the activations through the lightweight decoder to predict masks
         decoder_outputs = self.decoder(activations, conditional_embeddings)
         logits = decoder_outputs.logits
+        out = torch.sigmoid(logits[:, None])
 
-        return logits[:, None]
+        return out
