@@ -85,5 +85,6 @@ class LanGuideMedSeg(nn.Module):
 
         out = self.out(os1).sigmoid()
 
+        print(out)
         return out
     
