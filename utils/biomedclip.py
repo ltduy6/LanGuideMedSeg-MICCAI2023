@@ -52,7 +52,7 @@ class BiomedCLIPSeg(nn.Module):
     def _forward_vit(self, x, output_hidden_states: bool = True):
         if x.shape[1] == 1:
             x = x.repeat(1, 3, 1, 1)
-            
+
         ViT = self.biomedclip.visual.trunk
         x = ViT.patch_embed(x)
         x = ViT._pos_embed(x)
@@ -144,11 +144,19 @@ class BiomedCLIPSeg(nn.Module):
         input_ids = text["input_ids"]
         attention_mask = text["attention_mask"]
         # step 1: forward the query images through the frozen CLIP vision encoder
-        with torch.inference_mode():
+        if not self.biomedclip.training:
+            with torch.no_grad():
+                pooled_output, hidden_states = self._forward_vit(
+                    pixel_values, output_hidden_states=True
+                )
+                # Clone tensors to detach from inference context
+                activations = [
+                    hidden_states[i + 1].clone() for i in self.clip_seg_config.extract_layers
+                ]
+        else:
             pooled_output, hidden_states = self._forward_vit(
                 pixel_values, output_hidden_states=True
             )
-            # we add +1 here as the hidden states also include the initial embeddings
             activations = [
                 hidden_states[i + 1] for i in self.clip_seg_config.extract_layers
             ]
