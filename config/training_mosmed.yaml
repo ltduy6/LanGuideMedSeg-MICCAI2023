@@ -19,6 +19,8 @@ TRAIN:
 MODEL:
   bert_type: emilyalsentzer/Bio_ClinicalBERT
   vision_type: facebook/convnext-tiny-224
+  biomedclip_hf_api: hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224
+  clipseg_hf_api: CIDAS/clipseg-rd64-refined
   project_dim: 768
 
   dropout_prob: 0.3

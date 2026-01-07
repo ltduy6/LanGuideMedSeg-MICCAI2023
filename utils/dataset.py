@@ -6,6 +6,7 @@ from monai.transforms import (AddChanneld, Compose, Lambdad, NormalizeIntensityd
                               Resized, ToTensord, LoadImaged, EnsureChannelFirstd, RandGaussianNoised)
 from torch.utils.data import DataLoader, Dataset
 from transformers import AutoTokenizer
+from open_clip import get_tokenizer
 
 class QaTa(Dataset):
 
@@ -32,7 +33,12 @@ class QaTa(Dataset):
         self.root_path = root_path
         self.image_size = image_size
 
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer, trust_remote_code=True)
+        if tokenizer != "hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224":
+            self.tokenizer = AutoTokenizer.from_pretrained(tokenizer, trust_remote_code=True)
+        else:
+            self.tokenizer = get_tokenizer(tokenizer).tokenizer
+
+        self.isBiomedCLIP = True if tokenizer == "hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224" else False
 
     def __len__(self):
 
@@ -46,11 +52,21 @@ class QaTa(Dataset):
         gt = os.path.join(self.root_path,'Ground-truths', self.image_list[idx])
         caption = self.caption_list[idx].split(',')[-1]  # get the last part as caption
 
-        token_output = self.tokenizer.encode_plus(caption, padding='max_length',
-                                                        max_length=24, 
-                                                        truncation=True,
-                                                        return_attention_mask=True,
-                                                        return_tensors='pt')
+        if self.isBiomedCLIP:
+            token_output = self.tokenizer(
+                text=caption,
+                max_length=24,
+                truncation=True,
+                padding='max_length',
+                return_tensors='pt'
+            )
+        else:
+            token_output = self.tokenizer.encode_plus(caption, padding='max_length',
+                                                            max_length=24, 
+                                                            truncation=True,
+                                                            return_attention_mask=True,
+                                                            return_tensors='pt')
+            
         token,mask = token_output['input_ids'],token_output['attention_mask']
 
         data = {'image':image, 'gt':gt, 'token':token, 'mask':mask}
