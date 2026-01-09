@@ -5,7 +5,7 @@ from .layers import GuideDecoder
 from monai.networks.blocks.dynunet_block import UnetOutBlock
 from monai.networks.blocks.upsample import SubpixelUpsample
 from transformers import AutoTokenizer, AutoModel
-from .mapper import CrossAttentionTokenMapper
+from .mapper import CrossAttentionTokenMapper, ImageToTextSemanticMapper
 
 
 

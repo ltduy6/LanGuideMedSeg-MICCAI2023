@@ -1,0 +1,33 @@
+TRAIN:
+  train_batch_size: 32
+  lr: 0.0003
+
+  valid_batch_size: 8
+
+  image_size: [224,224]
+
+  min_epochs: 20
+  max_epochs: 100
+  patience: 30
+
+  device: 1
+
+  model_save_path: ./save_mapper_mosmed
+  model_save_filename: mapper
+  best_model_path: ./save_mapper_mosmed/mapper.ckpt
+
+MODEL:
+  bert_type: microsoft/BiomedVLP-CXR-BERT-specialized
+  vision_type: facebook/convnext-tiny-224
+  project_dim: 768
+
+DATA:
+  data: MosMedPlus
+  train_csv_path: ./data/MosMedData+/prompt/train.csv
+  train_root_path: ./data/MosMedData+/Train
+
+  val_csv_path: ./data/MosMedData+/prompt/val.csv
+  val_root_path: ./data/MosMedData+/Val
+
+  test_csv_path: ./data/MosMedData+/prompt/test.csv
+  test_root_path: ./data/MosMedData+/Test
