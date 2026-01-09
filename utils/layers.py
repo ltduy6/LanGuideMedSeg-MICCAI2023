@@ -48,8 +48,6 @@ class GuideDecoderLayer(nn.Module):
             nn.GELU(),
         )
 
-        self.text_len_project = nn.Linear(input_text_len, output_text_len)
-
         self.vis_pos = PositionalEncoding(in_channels)
         self.txt_pos = PositionalEncoding(in_channels,max_len=output_text_len)
 
@@ -75,8 +73,7 @@ class GuideDecoderLayer(nn.Module):
         txt:[B,L,C]
         '''
         txt = self.text_project(txt)
-        txt = txt.transpose(1, 2)
-        txt = self.text_len_project(txt).transpose(1, 2)
+        txt = self.txt_pos(txt)
 
         # Self-Attention
         vis2 = self.norm1(x)
@@ -88,7 +85,7 @@ class GuideDecoderLayer(nn.Module):
         # Cross-Attention
         vis2 = self.norm2(vis)
         vis2 = self.cross_attn(query=self.vis_pos(vis2),
-                                   key=self.txt_pos(txt),
+                                   key=txt,
                                    value=txt)[0]
         vis = vis + self.scale*vis2
 

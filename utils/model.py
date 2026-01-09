@@ -144,8 +144,8 @@ class LanGuideMedSeg(nn.Module):
             }
 
         os16 = self.decoder16(os32,image_features[2], text_embeds_last)
-        os8 = self.decoder8(os16,image_features[1], text_embeds_last)
-        os4 = self.decoder4(os8,image_features[0], text_embeds_last)
+        os8 = self.decoder8(os16,image_features[1], None)
+        os4 = self.decoder4(os8,image_features[0], None)
         os4 = rearrange(os4, 'B (H W) C -> B C H W',H=self.spatial_dim[-1],W=self.spatial_dim[-1])
         os1 = self.decoder1(os4)
 
