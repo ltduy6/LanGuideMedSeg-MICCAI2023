@@ -1,30 +1,62 @@
 TRAIN:
-  train_batch_size: 32
-  lr: 0.0003
-
+  train_batch_size: 16
   valid_batch_size: 8
-
-  image_size: [224,224]
-
+  lr: 0.0001
+  
+  image_size: [224, 224]
+  
   min_epochs: 20
   max_epochs: 100
   patience: 30
-
+  
   device: 1
-
+  
+  # Mapper-specific paths
   model_save_path: ./save_mapper_qata
   model_save_filename: mapper
-  best_model_path: ./save_mapper_qata/mapper.ckpt
+  best_model_path: ./save_mapper_qata/mapper_best.ckpt
+  save_dir: ./save_mapper_qata  # Directory for saving mapper checkpoints
+  log_dir: ./logs/mapper_qata    # TensorBoard logs
 
 MODEL:
   bert_type: microsoft/BiomedVLP-CXR-BERT-specialized
   vision_type: facebook/convnext-tiny-224
   project_dim: 768
+  
+  # Mapper architecture
+  mapper_type: semantic  # Options: semantic, cross_attention, linear, per_token, conv
+  token_dim: 768
+  num_text_tokens: 24
+  num_visual_tokens: 49
+
+LOSS:
+  # Loss function weights
+  lambda_token: 1.0         # Token-level cosine similarity
+  lambda_global: 0.5        # Global cosine similarity
+  lambda_diversity: 0.1     # Diversity regularization
+  lambda_contrastive: 0.2   # Contrastive learning
+  temperature: 0.07         # Temperature for contrastive loss
 
 DATA:
   data: QaTa
+  
+  # Training data
   train_csv_path: ./data/QaTa-COV19-v2/prompt/train.csv
   train_root_path: ./data/QaTa-COV19-v2/Train
-
+  
+  # Validation data (add this)
+  val_csv_path: ./data/QaTa-COV19-v2/prompt/val.csv
+  val_root_path: ./data/QaTa-COV19-v2/Val
+  
+  # Test data
   test_csv_path: ./data/QaTa-COV19-v2/prompt/test.csv
   test_root_path: ./data/QaTa-COV19-v2/Test
+
+OPTIMIZATION:
+  weight_decay: 0.01
+  gradient_clip_val: 1.0
+  precision: 16  # Mixed precision training (16 or 32)
+  
+LOGGING:
+  save_every_n_epochs: 10  # Save mapper checkpoint every N epochs
+  log_every_n_steps: 50    # Log metrics every N steps

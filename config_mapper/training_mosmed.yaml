@@ -20,6 +20,16 @@ MODEL:
   bert_type: microsoft/BiomedVLP-CXR-BERT-specialized
   vision_type: facebook/convnext-tiny-224
   project_dim: 768
+  num_text_tokens: 24
+  num_visual_tokens: 49
+
+LOSS:
+  # Loss function weights
+  lambda_token: 1.0         # Token-level cosine similarity
+  lambda_global: 0.5        # Global cosine similarity
+  lambda_diversity: 0.1     # Diversity regularization
+  lambda_contrastive: 0.2   # Contrastive learning
+  temperature: 0.07         # Temperature for contrastive loss
 
 DATA:
   data: MosMedPlus
@@ -31,3 +41,13 @@ DATA:
 
   test_csv_path: ./data/MosMedData+/prompt/test.csv
   test_root_path: ./data/MosMedData+/Test
+
+
+OPTIMIZATION:
+  weight_decay: 0.01
+  gradient_clip_val: 1.0
+  precision: 16  # Mixed precision training (16 or 32)
+  
+LOGGING:
+  save_every_n_epochs: 10  # Save mapper checkpoint every N epochs
+  log_every_n_steps: 50    # Log metrics every N steps
