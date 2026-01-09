@@ -28,7 +28,7 @@ class BiomedCLIPSeg(nn.Module):
         clipseg_hf_api: str,
         freeze_encoder: bool = True,
         freeze_decoder: bool = False,
-        rand_init_decoder: bool = True,
+        rand_init_decoder: bool = False,
     ):
         super().__init__()
         # Encoder from BiomedCLIP

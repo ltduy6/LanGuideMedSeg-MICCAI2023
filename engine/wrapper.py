@@ -1,7 +1,6 @@
 from utils.model import LanGuideMedSeg
-from utils.biomedclip import (
-    BiomedCLIPSeg
-)
+from utils.biomedclip import BiomedCLIPSeg
+from utils.clipseg import CLIPSeg
 from monai.losses import DiceCELoss
 from torchmetrics import Accuracy,Dice
 from torchmetrics.classification import BinaryJaccardIndex
@@ -25,6 +24,10 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         if model_type == "LanGuideMedSeg_BiomedCLIP":
             self.model = BiomedCLIPSeg(
                 biomedclip_hf_api=args.biomedclip_hf_api,
+                clipseg_hf_api=args.clipseg_hf_api
+            )
+        elif model_type == "LanGuideMedSeg_CLIPSeg":
+            self.model = CLIPSeg(
                 clipseg_hf_api=args.clipseg_hf_api
             )
         else:
