@@ -169,10 +169,12 @@ class MapperPretrainer(pl.LightningModule):
         # Compute losses
         loss_dict = self.criterion(pred_tokens, target_tokens)
         
+        print_text = ""
         # Log metrics
         for key, value in loss_dict.items():
-            print(f'{stage}_{key}', value.item())
+            print_text += f'{stage}_{key}: {value.item()}\n'
         
+        self.print(print_text)
         return loss_dict['loss']
     
     def training_step(self, batch, batch_idx):
