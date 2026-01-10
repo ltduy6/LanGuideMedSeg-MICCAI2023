@@ -17,7 +17,7 @@ TRAIN:
   best_model_path: ./save_model_qata/medseg-v1.ckpt
 
 MAPPER:
-  pretrained_mapper_path: ./save_mapper_qata/mapper.ckpt
+  pretrained_mapper_path: ./save_mapper_qata/mapper.pt
 
 MODEL:
   bert_type: microsoft/BiomedVLP-CXR-BERT-specialized

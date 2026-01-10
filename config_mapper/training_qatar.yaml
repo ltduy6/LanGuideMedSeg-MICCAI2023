@@ -13,8 +13,8 @@ TRAIN:
   
   # Mapper-specific paths
   model_save_path: ./save_mapper_qata
-  model_save_filename: mapper
-  best_model_path: ./save_mapper_qata/mapper_best.ckpt
+  model_save_filename: model_mapper
+  best_model_path: ./save_mapper_qata/model_mapper.ckpt
   mapper_save_path: ./save_mapper_qata/mapper.pt
 
 MODEL:

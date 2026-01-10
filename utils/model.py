@@ -80,7 +80,7 @@ class LanGuideMedSeg(nn.Module):
             self.load_pretrained_mapper(pretrained_mapper_path)
 
     def load_pretrained_mapper(self, path):
-        checkpoint = torch.load(path, map_location='cpu')
+        checkpoint = torch.load(path, map_location='cpu', weights_only=False)
         self.visual_text_mapper.load_state_dict(checkpoint['mapper_state_dict'])
         print(f"Loaded pretrained mapper from {path}")
 
