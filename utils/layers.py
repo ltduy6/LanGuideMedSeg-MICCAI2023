@@ -24,7 +24,7 @@ class PositionalEncoding(nn.Module):
     def forward(self, x):
 
         #  output = word_embedding + positional_embedding
-        x = x + nn.Parameter(self.pe[:, :x.size(1)],requires_grad=False) #size = [batch, L, d_model]
+        x = x + self.pe[:, :x.size(1)]
         return self.dropout(x) # size = [batch, L, d_model]
 
 
