@@ -9,6 +9,9 @@ from utils.dataset import QaTa, MosMedPlus
 from einops import repeat
 from pathlib import Path
 from einops import rearrange
+import datetime
+import sys
+import numpy as np
 
 
 class MapperLoss(nn.Module):
@@ -168,18 +171,6 @@ class MapperPretrainer(pl.LightningModule):
         
         # Compute losses
         loss_dict = self.criterion(pred_tokens, target_tokens)
-        
-        # Log metrics
-        for key, value in loss_dict.items():
-            self.log(
-                f'{stage}_{key}', 
-                value, 
-                on_step=False,      # Don't log at every step
-                on_epoch=True,      # Log epoch average
-                prog_bar=(key == 'loss'),  # Show main loss in progress bar
-                logger=True,        # Log to tensorboard
-                sync_dist=True      # Sync across GPUs if using multi-GPU
-            )
 
         return loss_dict['loss']
     
@@ -189,6 +180,48 @@ class MapperPretrainer(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         return self.shared_step(batch, batch_idx, 'val')
     
+    def shared_step_end(self,outputs,stage):
+        return outputs.mean()
+
+    def training_step_end(self, outputs):
+        return {'loss':self.shared_step_end(outputs,"train")}
+            
+    def validation_step_end(self, outputs):
+        return {'val_loss':self.shared_step_end(outputs,"val")}
+    
+    def shared_epoch_end(self,outputs,stage="train"):
+        epoch = self.trainer.current_epoch
+        stage_loss = torch.mean(torch.tensor([t[(stage+"_loss").replace('train_','')] for t in outputs])).item()
+        dic = {"epoch":epoch,stage+"_loss":stage_loss}
+
+        if stage!='test':
+            self.history[epoch] = dict(self.history.get(epoch,{}),**dic) 
+            
+        return dic
+    
+    def training_epoch_end(self, outputs):
+        dic = self.shared_epoch_end(outputs,stage="train")
+        self.print(dic)
+        dic.pop("epoch",None)
+        self.log_dict(dic, logger=True)
+
+    def validation_epoch_end(self, outputs):
+        dic = self.shared_epoch_end(outputs,stage="val")
+        self.print_bar()
+        self.print(dic)
+        dic.pop("epoch",None)
+        self.log_dict(dic, logger=True)
+        
+        #log when reach best score
+        ckpt_cb = self.trainer.checkpoint_callback
+        monitor = ckpt_cb.monitor 
+        mode = ckpt_cb.mode 
+        arr_scores = self.get_history()[monitor]
+        best_score_idx = np.argmax(arr_scores) if mode=="max" else np.argmin(arr_scores)
+        if best_score_idx==len(arr_scores)-1:   
+            self.print("<<<<<< reach best {0} : {1} >>>>>>".format(
+                monitor,arr_scores[best_score_idx]),file = sys.stderr)
+
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(
             self.mapper.parameters(),
@@ -227,3 +260,7 @@ class MapperPretrainer(pl.LightningModule):
         if self.current_epoch % 10 == 0:  # Save every 10 epochs
             save_path = Path(self.args.save_dir) / f'mapper_epoch_{self.current_epoch}.pt'
             self.save_mapper(save_path)
+    
+    def print_bar(self): 
+        nowtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        self.print("\n"+"="*80 + "%s"%nowtime)
