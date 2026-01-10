@@ -12,6 +12,7 @@ from einops import rearrange
 import datetime
 import sys
 import numpy as np
+import pandas as pd
 
 
 class MapperLoss(nn.Module):
@@ -266,3 +267,6 @@ class MapperPretrainer(pl.LightningModule):
     def print_bar(self): 
         nowtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.print("\n"+"="*80 + "%s"%nowtime)
+
+    def get_history(self):
+        return pd.DataFrame(self.history.values()) 
