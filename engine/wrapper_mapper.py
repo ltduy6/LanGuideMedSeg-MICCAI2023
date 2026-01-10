@@ -169,12 +169,18 @@ class MapperPretrainer(pl.LightningModule):
         # Compute losses
         loss_dict = self.criterion(pred_tokens, target_tokens)
         
-        print_text = ""
         # Log metrics
         for key, value in loss_dict.items():
-            print_text += f'{stage}_{key}: {value.item()}\n'
-        
-        self.print(print_text)
+            self.log(
+                f'{stage}_{key}', 
+                value, 
+                on_step=False,      # Don't log at every step
+                on_epoch=True,      # Log epoch average
+                prog_bar=(key == 'loss'),  # Show main loss in progress bar
+                logger=True,        # Log to tensorboard
+                sync_dist=True      # Sync across GPUs if using multi-GPU
+            )
+
         return loss_dict['loss']
     
     def training_step(self, batch, batch_idx):
