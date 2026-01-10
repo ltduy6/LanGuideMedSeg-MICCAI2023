@@ -67,8 +67,8 @@ class LanGuideMedSeg(nn.Module):
         feature_dim = [768,384,192,96]
 
         self.decoder16 = GuideDecoder(feature_dim[0],feature_dim[1],self.spatial_dim[0],24)
-        self.decoder8 = GuideDecoder(feature_dim[1],feature_dim[2],self.spatial_dim[1],12)
-        self.decoder4 = GuideDecoder(feature_dim[2],feature_dim[3],self.spatial_dim[2],9)
+        self.decoder8 = GuideDecoder(feature_dim[1],feature_dim[2],self.spatial_dim[1],24)
+        self.decoder4 = GuideDecoder(feature_dim[2],feature_dim[3],self.spatial_dim[2],24)
         self.decoder1 = SubpixelUpsample(2,feature_dim[3],24,4)
         self.out = UnetOutBlock(2, in_channels=24, out_channels=1)
         
