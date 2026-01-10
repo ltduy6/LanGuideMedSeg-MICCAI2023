@@ -171,7 +171,7 @@ class MapperPretrainer(pl.LightningModule):
         
         # Log metrics
         for key, value in loss_dict.items():
-            self.log(f'{stage}_{key}', value, prog_bar=(key == 'loss'))
+            print(f'{stage}_{key}', value.item())
         
         return loss_dict['loss']
     
