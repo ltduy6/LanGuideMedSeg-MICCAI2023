@@ -117,6 +117,8 @@ class MapperPretrainer(pl.LightningModule):
             lambda_contrastive=args.lambda_contrastive,
             temperature=args.temperature
         )
+
+        self.history = {}
         
         self.lr = args.lr
         self.args = args
