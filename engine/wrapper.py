@@ -23,7 +23,8 @@ class LanGuideMedSegWrapper(pl.LightningModule):
             args.vision_type,
             args.project_dim,
             args.dropout_prob,
-            args.alpha
+            args.alpha,
+            pretrained_mapper_path=args.pretrained_mapper_path
         )
 
         self.lr = args.lr

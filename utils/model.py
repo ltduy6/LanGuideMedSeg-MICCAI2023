@@ -56,7 +56,7 @@ class VisionModel(nn.Module):
 
 class LanGuideMedSeg(nn.Module):
 
-    def __init__(self, bert_type, vision_type, project_dim=512, dropout_prob=0.3, alpha=0.7):
+    def __init__(self, bert_type, vision_type, project_dim=512, dropout_prob=0.3, alpha=0.7, pretrained_mapper_path=None):
 
         super(LanGuideMedSeg, self).__init__()
 
@@ -74,7 +74,15 @@ class LanGuideMedSeg(nn.Module):
         
         self.dropout_prob = dropout_prob
         self.alpha = alpha
-        self.visual_text_mapper = CrossAttentionTokenMapper()
+        self.visual_text_mapper = ImageToTextSemanticMapper()
+
+        if pretrained_mapper_path is not None:
+            self.load_pretrained_mapper(pretrained_mapper_path)
+
+    def load_pretrained_mapper(self, path):
+        checkpoint = torch.load(path, map_location='cpu')
+        self.visual_text_mapper.load_state_dict(checkpoint['mapper_state_dict'])
+        print(f"Loaded pretrained mapper from {path}")
 
     def forward(self, data):
 

@@ -15,8 +15,7 @@ TRAIN:
   model_save_path: ./save_mapper_qata
   model_save_filename: mapper
   best_model_path: ./save_mapper_qata/mapper_best.ckpt
-  save_dir: ./save_mapper_qata  # Directory for saving mapper checkpoints
-  log_dir: ./logs/mapper_qata    # TensorBoard logs
+  mapper_save_path: ./save_mapper_qata/mapper.pt
 
 MODEL:
   bert_type: microsoft/BiomedVLP-CXR-BERT-specialized

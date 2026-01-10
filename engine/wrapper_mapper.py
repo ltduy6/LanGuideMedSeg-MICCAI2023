@@ -236,9 +236,8 @@ class MapperPretrainer(pl.LightningModule):
         if best_score_idx==len(arr_scores)-1:   
             self.print("<<<<<< reach best {0} : {1} >>>>>>".format(
                 monitor,arr_scores[best_score_idx]),file = sys.stderr)
-            save_path = Path(self.args.save_dir) / f'mapper_epoch_{self.current_epoch}.pt'
-            self.save_mapper(save_path)
-            
+            self.save_mapper(self.args.mapper_save_path)
+
     def test_epoch_end(self, outputs):
         dic = self.shared_epoch_end(outputs,stage="test")
         dic.pop("epoch",None)
