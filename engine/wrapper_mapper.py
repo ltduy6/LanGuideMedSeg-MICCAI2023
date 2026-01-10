@@ -183,6 +183,15 @@ class MapperPretrainer(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         return self.shared_step(batch, batch_idx, 'val')
     
+    def test_step(self, batch, batch_idx):
+        return self.shared_step(batch,batch_idx)
+    
+    def predict_step(self, batch, batch_idx):
+        if isinstance(batch,list) and len(batch)==2:
+            return self(batch[0])
+        else:
+            return self(batch)
+    
     def shared_step_end(self,outputs,stage):
         return outputs.mean()
 
@@ -191,6 +200,9 @@ class MapperPretrainer(pl.LightningModule):
             
     def validation_step_end(self, outputs):
         return {'val_loss':self.shared_step_end(outputs,"val")}
+    
+    def test_step_end(self, outputs):
+        return {'test_loss':self.shared_step_end(outputs,"test")}
     
     def shared_epoch_end(self,outputs,stage="train"):
         epoch = self.trainer.current_epoch
@@ -224,6 +236,14 @@ class MapperPretrainer(pl.LightningModule):
         if best_score_idx==len(arr_scores)-1:   
             self.print("<<<<<< reach best {0} : {1} >>>>>>".format(
                 monitor,arr_scores[best_score_idx]),file = sys.stderr)
+            save_path = Path(self.args.save_dir) / f'mapper_epoch_{self.current_epoch}.pt'
+            self.save_mapper(save_path)
+            
+    def test_epoch_end(self, outputs):
+        dic = self.shared_epoch_end(outputs,stage="test")
+        dic.pop("epoch",None)
+        self.print(dic)
+        self.log_dict(dic, logger=True)
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(
@@ -257,12 +277,6 @@ class MapperPretrainer(pl.LightningModule):
         }, save_path)
         
         print(f"Mapper saved to {save_path}")
-    
-    def on_validation_epoch_end(self):
-        """Save mapper at each validation epoch"""
-        if self.current_epoch % 10 == 0:  # Save every 10 epochs
-            save_path = Path(self.args.save_dir) / f'mapper_epoch_{self.current_epoch}.pt'
-            self.save_mapper(save_path)
     
     def print_bar(self): 
         nowtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
