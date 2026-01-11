@@ -11,6 +11,7 @@ import sys
 import numpy as np
 import datetime
 import torch.nn.functional as F
+from .wrapper_mapper import MapperLoss
 
 class LanGuideMedSegWrapper(pl.LightningModule):
 
@@ -24,13 +25,21 @@ class LanGuideMedSegWrapper(pl.LightningModule):
             args.project_dim,
             args.dropout_prob,
             args.alpha,
-            pretrained_mapper_path=args.pretrained_mapper_path
+            args.pretrained_mapper_path
         )
 
         self.lr = args.lr
         self.history = {}
         
         self.loss_fn = DiceCELoss()
+
+        self.criterion = MapperLoss(
+            lambda_token=args.lambda_token,
+            lambda_global=args.lambda_global,
+            lambda_diversity=args.lambda_diversity,
+            lambda_contrastive=args.lambda_contrastive,
+            temperature=args.temperature
+        )
 
         metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex()}
         self.train_metrics = nn.ModuleDict(metrics_dict)
@@ -61,16 +70,13 @@ class LanGuideMedSegWrapper(pl.LightningModule):
             visual_tokens = return_info['generated_visual_tokens']
             text_tokens = return_info['text_tokens']
 
-            alignment_loss = F.mse_loss(visual_tokens, text_tokens)
-            total_loss = main_loss + self.alignment_loss_weight * alignment_loss
-            self.log('alignment_loss', alignment_loss, prog_bar=True)
-            self.log('main_loss', main_loss, prog_bar=True)
+            loss_dict = self.criterion(visual_tokens, text_tokens)
+            total_loss = main_loss + self.alignment_loss_weight * loss_dict['loss']
             
             return {
                 'loss': total_loss,
                 'preds': preds.detach(),
                 'y': y.detach(),
-                'alignment_loss': alignment_loss.detach(),
                 'main_loss': main_loss.detach()
             }
         else:
@@ -78,7 +84,6 @@ class LanGuideMedSegWrapper(pl.LightningModule):
                 'loss': main_loss,
                 'preds': preds.detach(),
                 'y': y.detach(),
-                'alignment_loss': torch.tensor(0.0),
                 'main_loss': main_loss.detach()
             }
 

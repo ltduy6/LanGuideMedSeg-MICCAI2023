@@ -78,6 +78,9 @@ class LanGuideMedSeg(nn.Module):
 
         if pretrained_mapper_path is not None:
             self.load_pretrained_mapper(pretrained_mapper_path)
+            for p in self.visual_text_mapper.parameters():
+                p.requires_grad = False
+    
 
     def load_pretrained_mapper(self, path):
         checkpoint = torch.load(path, map_location='cpu', weights_only=False)
@@ -115,7 +118,7 @@ class LanGuideMedSeg(nn.Module):
                 if torch.rand(1).item() < self.dropout_prob:
                     guidance_tokens[b] = generated_visual_tokens[b]
                 else:
-                    guidance_tokens[b] = (self.alpha * text_tokens[b] + (1 - self.alpha) * generated_visual_tokens[b])
+                    guidance_tokens[b] = text_tokens[b]
             
             text_embeds_last = guidance_tokens
 
