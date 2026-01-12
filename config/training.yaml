@@ -14,7 +14,7 @@ TRAIN:
 
   model_save_path: ./save_model_qata
   model_save_filename: medseg
-  best_model_path: ./save_model_qata/medseg.ckpt
+  best_model_path: ./teacher_model/medseg.ckpt
 
 MAPPER:
   pretrained_mapper_path: ./save_mapper_qata/mapper.pt

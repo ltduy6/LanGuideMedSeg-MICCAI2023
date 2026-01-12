@@ -1,5 +1,6 @@
 import argparse
 from engine.wrapper import LanGuideMedSegWrapper
+from engine.wrapper_teacher import TeacherWrapper
 
 import torch
 import torch.nn as nn
@@ -30,7 +31,7 @@ if __name__ == '__main__':
     args = get_parser()
 
     # load model
-    model = LanGuideMedSegWrapper(args)
+    model = TeacherWrapper(args)
 
     torch.serialization.add_safe_globals([config.CfgNode])
 
