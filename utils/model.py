@@ -126,7 +126,7 @@ class LanGuideMedSeg(nn.Module):
             dropout_prob = self.get_curriculum_dropout_prob()
 
             for b in range(batch_size):
-                if torch.rand(1).item() < dropout_prob:
+                if torch.rand(1).item() < self.dropout_prob:
                     guidance_tokens[b] = text_tokens[b]
                 else:
                     guidance_tokens[b] = generated_visual_tokens[b]

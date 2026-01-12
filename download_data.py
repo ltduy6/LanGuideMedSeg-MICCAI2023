@@ -138,5 +138,6 @@ def download_datasets(file_id="1i4qVwj90w_uhBIwCGoJuI6gsXAcMtjgN", datasets_dir=
 
 
 if __name__ == "__main__":
-    download_datasets()
-    # download_datasets(file_id="1HPsLnKsj-Lsqv1bXTMCRxZ8SNAHryTHp", datasets_dir="./save_model/")
+    download_datasets(file_id="1nlcT9opqjmnw1J_6l-5SSlYslNWKAJFd")
+    download_datasets(file_id="179FANpKsd8E2LeYoVmI5FbDZymvObWV3", datasets_dir="./save_mapper_mosmed/")
+    download_datasets(file_id="1LblTYXmFDxJyVcxNfGuxjEKvc7YM370y", datasets_dir="./save_mapper_qata/")
