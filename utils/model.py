@@ -80,12 +80,22 @@ class LanGuideMedSeg(nn.Module):
             self.load_pretrained_mapper(pretrained_mapper_path)
             for p in self.visual_text_mapper.parameters():
                 p.requires_grad = False
-    
+
+        self.current_epoch = 0
+        self.max_epoch = 100
 
     def load_pretrained_mapper(self, path):
         checkpoint = torch.load(path, map_location='cpu', weights_only=False)
         self.visual_text_mapper.load_state_dict(checkpoint['mapper_state_dict'])
         print(f"Loaded pretrained mapper from {path}")
+    
+    def set_epoch(self, epoch):
+        self.current_epoch = epoch
+
+    def get_curriculum_dropout_prob(self):
+        progress = self.current_epoch / self.max_epoch
+        dropout_prob = (1 - progress)
+        return dropout_prob
 
     def forward(self, data):
 
@@ -113,12 +123,13 @@ class LanGuideMedSeg(nn.Module):
             batch_size = text_tokens.size(0)
 
             guidance_tokens = torch.zeros_like(text_tokens)
+            dropout_prob = self.get_curriculum_dropout_prob()
 
             for b in range(batch_size):
-                if torch.rand(1).item() < self.dropout_prob:
-                    guidance_tokens[b] = generated_visual_tokens[b]
-                else:
+                if torch.rand(1).item() < dropout_prob:
                     guidance_tokens[b] = text_tokens[b]
+                else:
+                    guidance_tokens[b] = generated_visual_tokens[b]
             
             text_embeds_last = guidance_tokens
 

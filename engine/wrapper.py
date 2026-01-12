@@ -171,3 +171,6 @@ class LanGuideMedSegWrapper(pl.LightningModule):
     def print_bar(self): 
         nowtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.print("\n"+"="*80 + "%s"%nowtime)
+
+    def on_train_epoch_start(self):
+        self.model.set_epoch(self.current_epoch)
