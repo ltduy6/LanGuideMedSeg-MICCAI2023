@@ -138,6 +138,7 @@ def download_datasets(file_id="1i4qVwj90w_uhBIwCGoJuI6gsXAcMtjgN", datasets_dir=
 
 
 if __name__ == "__main__":
-    download_datasets(file_id="1nlcT9opqjmnw1J_6l-5SSlYslNWKAJFd")
-    download_datasets(file_id="179FANpKsd8E2LeYoVmI5FbDZymvObWV3", datasets_dir="./save_mapper_mosmed/")
-    download_datasets(file_id="1LblTYXmFDxJyVcxNfGuxjEKvc7YM370y", datasets_dir="./save_mapper_qata/")
+    # download_datasets(file_id="1nlcT9opqjmnw1J_6l-5SSlYslNWKAJFd")
+    # download_datasets(file_id="179FANpKsd8E2LeYoVmI5FbDZymvObWV3", datasets_dir="./save_mapper_mosmed/")
+    # download_datasets(file_id="1LblTYXmFDxJyVcxNfGuxjEKvc7YM370y", datasets_dir="./save_mapper_qata/")
+    download_datasets(file_id="1soilLTo7rrqmzXKuhyiSXISLHF5yC6eA", datasets_dir="./teacher_model/")
