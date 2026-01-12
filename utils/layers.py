@@ -75,8 +75,7 @@ class GuideDecoderLayer(nn.Module):
         txt:[B,L,C]
         '''
         txt = self.text_project(txt)
-        txt = txt.transpose(1, 2)
-        txt = self.text_len_project(txt).transpose(1, 2)
+        txt = self.txt_pos(txt)
 
         # Self-Attention
         vis2 = self.norm1(x)
