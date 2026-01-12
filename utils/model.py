@@ -160,7 +160,7 @@ class TeacherModel(nn.Module):
 
     def __init__(self, bert_type, vision_type, project_dim=512, dropout_prob=0.3, alpha=0.7, pretrained_mapper_path=None):
 
-        super(LanGuideMedSeg, self).__init__()
+        super(TeacherModel, self).__init__()
 
         self.encoder = VisionModel(vision_type, project_dim)
         self.text_encoder = BERTModel(bert_type, project_dim)
