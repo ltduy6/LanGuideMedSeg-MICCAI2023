@@ -15,19 +15,12 @@ TRAIN:
   model_save_path: ./save_model_qata_teacher
   model_save_filename: medseg
   best_model_path: ./save_model_qata_teacher/medseg.ckpt
-  model: Student
-
-MAPPER:
-  pretrained_mapper_path: ./save_mapper_qata/mapper.pt
+  model: Teacher
 
 MODEL:
   bert_type: microsoft/BiomedVLP-CXR-BERT-specialized
   vision_type: facebook/convnext-tiny-224
   project_dim: 768
-
-  dropout_prob: 0.4
-  alpha: 0.7
-  alignment_loss_weight: 0.1
 
 DATA:
   data: QaTa
@@ -36,11 +29,3 @@ DATA:
 
   test_csv_path: ./data/QaTa-COV19-v2/prompt/test.csv
   test_root_path: ./data/QaTa-COV19-v2/Test
-
-LOSS:
-  # Loss function weights
-  lambda_token: 1.0         # Token-level cosine similarity
-  lambda_global: 0.5        # Global cosine similarity
-  lambda_diversity: 0.1     # Diversity regularization
-  lambda_contrastive: 0.2   # Contrastive learning
-  temperature: 0.07         # Temperature for contrastive loss

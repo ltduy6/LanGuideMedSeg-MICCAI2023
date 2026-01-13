@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from utils.dataset import QaTa,MosMedPlus
 import utils.config as config
 from torch.optim import lr_scheduler
-from engine.wrapper import LanGuideMedSegWrapper
+from utils.getter import get_model
 
 import pytorch_lightning as pl    
 from torchmetrics import Accuracy,Dice
@@ -66,7 +66,8 @@ if __name__ == '__main__':
     dl_train = DataLoader(ds_train, batch_size=args.train_batch_size, shuffle=True, num_workers=args.train_batch_size)
     dl_valid = DataLoader(ds_valid, batch_size=args.valid_batch_size, shuffle=False, num_workers=args.valid_batch_size)
 
-    model = LanGuideMedSegWrapper(args)
+    model = get_model(args)
+    print('model: ', args.model)
 
     ## 1. setting recall function
     model_ckpt = ModelCheckpoint(

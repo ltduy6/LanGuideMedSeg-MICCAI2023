@@ -1,4 +1,3 @@
-from models.student import LanGuideMedSeg
 from models.teacher import TeacherModel
 from monai.losses import DiceCELoss
 from torchmetrics import Accuracy,Dice
@@ -12,21 +11,17 @@ import sys
 import numpy as np
 import datetime
 import torch.nn.functional as F
-from .wrapper_mapper import MapperLoss
 
-class LanGuideMedSegWrapper(pl.LightningModule):
+class TeacherWrapper(pl.LightningModule):
 
     def __init__(self, args):
-        
-        super(LanGuideMedSegWrapper, self).__init__()
-        
-        self.model = LanGuideMedSeg(
+
+        super(TeacherWrapper, self).__init__()
+
+        self.model = TeacherModel(
             args.bert_type,
             args.vision_type,
-            args.project_dim,
-            args.dropout_prob,
-            args.alpha,
-            args.pretrained_mapper_path
+            args.project_dim
         )
 
         self.lr = args.lr
@@ -34,38 +29,13 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         
         self.loss_fn = DiceCELoss()
 
-        self.criterion = MapperLoss(
-            lambda_token=args.lambda_token,
-            lambda_global=args.lambda_global,
-            lambda_diversity=args.lambda_diversity,
-            lambda_contrastive=args.lambda_contrastive,
-            temperature=args.temperature
-        )
-
         metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex()}
         self.train_metrics = nn.ModuleDict(metrics_dict)
         self.val_metrics = deepcopy(self.train_metrics)
         self.test_metrics = deepcopy(self.train_metrics)
         
         self.save_hyperparameters()
-        self.alignment_loss_weight = args.alignment_loss_weight
 
-        self.teacher_model = TeacherModel(
-            args.bert_type,
-            args.vision_type,
-            args.project_dim
-        )
-
-        if args.teacher_model_path is not None:
-            self.load_teacher_model(args.teacher_model_path)
-            for p in self.teacher_model.parameters():
-                p.requires_grad = False
-
-    def load_teacher_model(self, path):
-        checkpoint = torch.load(path, map_location='cpu', weights_only=False)
-        self.teacher_model.load_state_dict(checkpoint['model_state_dict'])
-        print(f"Loaded teacher model from {path}")
-    
     def configure_optimizers(self):
 
         optimizer = torch.optim.AdamW(self.model.parameters(),lr = self.lr)
@@ -83,32 +53,12 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         preds, return_info = self(x)
         main_loss = self.loss_fn(preds,y)
 
-        if self.training:
-            visual_tokens = return_info['generated_visual_tokens']
-            text_tokens = return_info['text_tokens']
-
-            with torch.no_grad():
-                teacher_preds, teacher_return_info = self.teacher_model(x)
-                loss_os16 = self.loss_fn(teacher_return_info['os16'],return_info['os16'])
-                loss_os8 = self.loss_fn(teacher_return_info['os8'],return_info['os8'])
-                loss_os4 = self.loss_fn(teacher_return_info['os4'],return_info['os4'])
-
-            loss_dict = self.criterion(visual_tokens, text_tokens)
-            total_loss = main_loss + self.alignment_loss_weight * loss_dict['loss']
-            
-            return {
-                'loss': total_loss,
-                'preds': preds.detach(),
-                'y': y.detach(),
-                'main_loss': main_loss.detach()
-            }
-        else:
-            return {
+        return {
                 'loss': main_loss,
                 'preds': preds.detach(),
                 'y': y.detach(),
-                'main_loss': main_loss.detach()
-            }
+        }
+            
 
     def training_step(self, batch, batch_idx):
         return self.shared_step(batch,batch_idx)
@@ -194,6 +144,3 @@ class LanGuideMedSegWrapper(pl.LightningModule):
     def print_bar(self): 
         nowtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.print("\n"+"="*80 + "%s"%nowtime)
-
-    def on_train_epoch_start(self):
-        self.model.set_epoch(self.current_epoch)
