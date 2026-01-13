@@ -13,3 +13,5 @@ save_mapper_qata/
 save_mapper_mosmed/
 logs_teacher_qata/
 logs_teacher_mosmed/
+save_model_qata_teacher/
+save_model_mosmed_teacher/
