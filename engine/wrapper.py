@@ -237,3 +237,9 @@ class LanGuideMedSegWrapper(pl.LightningModule):
 
     def on_train_epoch_start(self):
         self.model.set_epoch(self.current_epoch)
+
+    def on_save_checkpoint(self, checkpoint):
+        # Remove teacher model from state_dict to save space since it is frozen
+        keys_to_remove = [k for k in checkpoint['state_dict'].keys() if k.startswith("teacher_model.")]
+        for k in keys_to_remove:
+            del checkpoint['state_dict'][k]
