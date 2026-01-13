@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 from models.teacher import TeacherModel
-=======
-from utils.model import TeacherModel
->>>>>>> origin/text_shift
 from monai.losses import DiceCELoss
 from torchmetrics import Accuracy,Dice
 from torchmetrics.classification import BinaryJaccardIndex
@@ -25,14 +21,7 @@ class TeacherWrapper(pl.LightningModule):
         self.model = TeacherModel(
             args.bert_type,
             args.vision_type,
-<<<<<<< HEAD
             args.project_dim
-=======
-            args.project_dim,
-            args.dropout_prob,
-            args.alpha,
-            args.pretrained_mapper_path
->>>>>>> origin/text_shift
         )
 
         self.lr = args.lr
@@ -64,16 +53,12 @@ class TeacherWrapper(pl.LightningModule):
         preds, return_info = self(x)
         main_loss = self.loss_fn(preds,y)
 
-<<<<<<< HEAD
         return {
                 'loss': main_loss,
                 'preds': preds.detach(),
                 'y': y.detach(),
         }
             
-=======
-        return {"loss":main_loss, "preds":preds, "y":y}
->>>>>>> origin/text_shift
 
     def training_step(self, batch, batch_idx):
         return self.shared_step(batch,batch_idx)
