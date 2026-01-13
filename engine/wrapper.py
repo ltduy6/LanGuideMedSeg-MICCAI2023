@@ -67,9 +67,33 @@ class LanGuideMedSegWrapper(pl.LightningModule):
                 p.requires_grad = False
 
     def load_teacher_model(self, path):
-        checkpoint = torch.load(path, map_location='cpu', weights_only=False)
-        self.teacher_model.load_state_dict(checkpoint['model_state_dict'])
-        print(f"Loaded teacher model from {path}")
+        try:
+            checkpoint = torch.load(path, map_location='cpu', weights_only=False)
+            
+            # 1. Try 'state_dict' (PL default) or 'model_state_dict' (Custom)
+            if 'state_dict' in checkpoint:
+                state_dict = checkpoint['state_dict']
+            elif 'model_state_dict' in checkpoint:
+                state_dict = checkpoint['model_state_dict']
+            else:
+                state_dict = checkpoint # Maybe it's just the state dict
+            
+            # 2. Fix key prefix if trained with Wrapper
+            # TeacherWrapper has self.model, so keys are 'model.xxx'
+            # We want to load into self.teacher_model (which is a TeacherModel)
+            new_state_dict = {}
+            for k, v in state_dict.items():
+                if k.startswith('model.'):
+                    new_state_dict[k[6:]] = v # remove 'model.'
+                else:
+                    new_state_dict[k] = v
+            
+            self.teacher_model.load_state_dict(new_state_dict)
+            print(f"Loaded teacher model from {path}")
+            
+        except Exception as e:
+            print(f"Failed to load teacher model: {e}")
+            raise e
     
     def configure_optimizers(self):
 
