@@ -17,6 +17,9 @@ TRAIN:
   best_model_path: ./save_model_qata_teacher/medseg.ckpt
   model: Student
 
+TEACHER:
+  techer_model_path: ./save_model_qata_teacher/medseg.ckpt
+
 MAPPER:
   pretrained_mapper_path: ./save_mapper_qata/mapper.pt
 
@@ -44,3 +47,8 @@ LOSS:
   lambda_diversity: 0.1     # Diversity regularization
   lambda_contrastive: 0.2   # Contrastive learning
   temperature: 0.07         # Temperature for contrastive loss
+  
+  # Distillation weights
+  lambda_distill_os16: 1.0
+  lambda_distill_os8: 1.0
+  lambda_distill_os4: 1.0

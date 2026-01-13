@@ -33,6 +33,7 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         self.history = {}
         
         self.loss_fn = DiceCELoss()
+        self.distill_loss_fn = nn.MSELoss()
 
         self.criterion = MapperLoss(
             lambda_token=args.lambda_token,
@@ -49,6 +50,10 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         
         self.save_hyperparameters()
         self.alignment_loss_weight = args.alignment_loss_weight
+        
+        self.lambda_distill_os16 = args.lambda_distill_os16
+        self.lambda_distill_os8 = args.lambda_distill_os8
+        self.lambda_distill_os4 = args.lambda_distill_os4
 
         self.teacher_model = TeacherModel(
             args.bert_type,
@@ -89,12 +94,23 @@ class LanGuideMedSegWrapper(pl.LightningModule):
 
             with torch.no_grad():
                 teacher_preds, teacher_return_info = self.teacher_model(x)
-                loss_os16 = self.loss_fn(teacher_return_info['os16'],return_info['os16'])
-                loss_os8 = self.loss_fn(teacher_return_info['os8'],return_info['os8'])
-                loss_os4 = self.loss_fn(teacher_return_info['os4'],return_info['os4'])
+                loss_os16 = self.distill_loss_fn(teacher_return_info['os16'],return_info['os16'])
+                loss_os8 = self.distill_loss_fn(teacher_return_info['os8'],return_info['os8'])
+                loss_os4 = self.distill_loss_fn(teacher_return_info['os4'],return_info['os4'])
 
             loss_dict = self.criterion(visual_tokens, text_tokens)
-            total_loss = main_loss + self.alignment_loss_weight * loss_dict['loss']
+            
+            distill_loss = (
+                self.lambda_distill_os16 * loss_os16 + 
+                self.lambda_distill_os8 * loss_os8 + 
+                self.lambda_distill_os4 * loss_os4
+            )
+            
+            total_loss = main_loss + self.alignment_loss_weight * loss_dict['loss'] + distill_loss
+            
+            self.log('train_distill_os16', loss_os16, prog_bar=True)
+            self.log('train_distill_os8', loss_os8, prog_bar=True)
+            self.log('train_distill_os4', loss_os4, prog_bar=True)
             
             return {
                 'loss': total_loss,
