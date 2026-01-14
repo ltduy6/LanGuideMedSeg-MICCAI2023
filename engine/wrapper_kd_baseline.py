@@ -1,4 +1,4 @@
-from models.student import LanGuideMedSeg
+from models.baseline_kd import BaselineKDModel
 from models.teacher import TeacherModel
 from monai.losses import DiceCELoss
 from torchmetrics import Accuracy,Dice
@@ -14,19 +14,16 @@ import datetime
 import torch.nn.functional as F
 from .wrapper_mapper import MapperLoss
 
-class LanGuideMedSegWrapper(pl.LightningModule):
+class BaselineKDWrapper(pl.LightningModule):
 
     def __init__(self, args):
         
-        super(LanGuideMedSegWrapper, self).__init__()
+        super(BaselineKDWrapper, self).__init__()
         
-        self.model = LanGuideMedSeg(
+        self.model = BaselineKDModel(
             args.bert_type,
             args.vision_type,
-            args.project_dim,
-            args.dropout_prob,
-            args.alpha,
-            args.pretrained_mapper_path
+            args.project_dim
         )
 
         self.lr = args.lr
@@ -35,21 +32,12 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         self.loss_fn = DiceCELoss()
         self.distill_loss_fn = nn.MSELoss()
 
-        self.criterion = MapperLoss(
-            lambda_token=args.lambda_token,
-            lambda_global=args.lambda_global,
-            lambda_diversity=args.lambda_diversity,
-            lambda_contrastive=args.lambda_contrastive,
-            temperature=args.temperature
-        )
-
         metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex()}
         self.train_metrics = nn.ModuleDict(metrics_dict)
         self.val_metrics = deepcopy(self.train_metrics)
         self.test_metrics = deepcopy(self.train_metrics)
         
         self.save_hyperparameters()
-        self.alignment_loss_weight = args.alignment_loss_weight
         
         self.lambda_distill_os16 = args.lambda_distill_os16
         self.lambda_distill_os8 = args.lambda_distill_os8
@@ -112,8 +100,6 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         main_loss = self.loss_fn(preds,y)
 
         if self.training:
-            visual_tokens = return_info['generated_visual_tokens']
-            text_tokens = return_info['text_tokens']
 
             with torch.no_grad():
                 teacher_preds, teacher_return_info = self.teacher_model(x)
@@ -121,22 +107,20 @@ class LanGuideMedSegWrapper(pl.LightningModule):
                 loss_os8 = self.distill_loss_fn(teacher_return_info['os8'],return_info['os8'])
                 loss_os4 = self.distill_loss_fn(teacher_return_info['os4'],return_info['os4'])
 
-            loss_dict = self.criterion(visual_tokens, text_tokens)
-            
             distill_loss = (
                 self.lambda_distill_os16 * loss_os16 + 
                 self.lambda_distill_os8 * loss_os8 + 
                 self.lambda_distill_os4 * loss_os4
             )
             
-            total_loss = main_loss + self.alignment_loss_weight * loss_dict['loss'] + distill_loss
+            total_loss = main_loss + distill_loss
             
             self.log('train_distill_os16', loss_os16, prog_bar=True)
             self.log('train_distill_os8', loss_os8, prog_bar=True)
             self.log('train_distill_os4', loss_os4, prog_bar=True)
             
             return {
-                'loss': total_loss,
+                'loss': total_loss, 
                 'preds': preds.detach(),
                 'y': y.detach(),
                 'main_loss': main_loss.detach()
@@ -233,9 +217,6 @@ class LanGuideMedSegWrapper(pl.LightningModule):
     def print_bar(self): 
         nowtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.print("\n"+"="*80 + "%s"%nowtime)
-
-    def on_train_epoch_start(self):
-        self.model.set_epoch(self.current_epoch)
 
     def on_save_checkpoint(self, checkpoint):
         # Remove teacher model from state_dict to save space since it is frozen

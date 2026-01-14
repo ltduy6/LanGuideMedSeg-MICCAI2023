@@ -15,3 +15,7 @@ logs_teacher_qata/
 logs_teacher_mosmed/
 save_model_qata_teacher/
 save_model_mosmed_teacher/
+save_model_qata_baseline_kd/
+save_model_mosmed_baseline_kd/
+logs_baseline_kd_qata/
+logs_baseline_kd_mosmed/
