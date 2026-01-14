@@ -50,7 +50,7 @@ class LanGuideMedSeg(nn.Module):
 
     def get_curriculum_dropout_prob(self):
         progress = self.current_epoch / self.max_epoch
-        dropout_prob = (1 - progress)
+        dropout_prob = 0.4 * (1 - progress)
         return dropout_prob
 
     def forward(self, data):
@@ -69,7 +69,6 @@ class LanGuideMedSeg(nn.Module):
             image_features = [rearrange(item,'b c h w -> b (h w) c') for item in image_features] 
 
         os32 = image_features[3]
-        image_tokens = os32.clone()
         
         generated_visual_tokens = self.visual_text_mapper(os32)
 
@@ -78,14 +77,14 @@ class LanGuideMedSeg(nn.Module):
 
             batch_size = text_tokens.size(0)
 
-            # guidance_tokens = torch.zeros_like(text_tokens)
-            # dropout_prob = self.get_curriculum_dropout_prob()
+            guidance_tokens = torch.zeros_like(text_tokens)
+            dropout_prob = self.get_curriculum_dropout_prob()
 
-            # for b in range(batch_size):
-            #     if torch.rand(1).item() < self.dropout_prob:
-            #         guidance_tokens[b] = text_tokens[b]
-            #     else:
-            #         guidance_tokens[b] = generated_visual_tokens[b]
+            for b in range(batch_size):
+                if torch.rand(1).item() < dropout_prob:
+                    guidance_tokens[b] = text_tokens[b]
+                else:
+                    guidance_tokens[b] = generated_visual_tokens[b]
             
             text_embeds_last = generated_visual_tokens
         else:
