@@ -13,6 +13,7 @@ import numpy as np
 import datetime
 import torch.nn.functional as F
 from .wrapper_mapper import MapperLoss
+from utils.loss import FeatureDistillationLoss
 
 class BaselineKDWrapper(pl.LightningModule):
 
@@ -30,7 +31,13 @@ class BaselineKDWrapper(pl.LightningModule):
         self.history = {}
         
         self.loss_fn = DiceCELoss()
-        self.distill_loss_fn = nn.MSELoss()
+        # Initialize FeatureDistillationLoss. Default to p=2 (L_FD2)
+        # You can change p=1 for L_FD1. 
+        # Ideally this should be configurable via args, but for now fixed or based on request.
+        # User requested both, let's assume valid default is needed or check args.
+        # The user said "given that z_out_1 is os4...".
+        # I'll enable p=2 by default as it's standard L2.
+        self.distill_loss_fn = FeatureDistillationLoss(p=2)
 
         metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex()}
         self.train_metrics = nn.ModuleDict(metrics_dict)
@@ -113,7 +120,7 @@ class BaselineKDWrapper(pl.LightningModule):
                 self.lambda_distill_os4 * loss_os4
             )
             
-            total_loss = main_loss
+            total_loss = main_loss + distill_loss
             
             self.log('train_distill_os16', loss_os16, prog_bar=True)
             self.log('train_distill_os8', loss_os8, prog_bar=True)
