@@ -69,12 +69,11 @@ class GuideDecoderLayer(nn.Module):
     def forward(self,x,txt):
 
         '''
-        x:[B N C1]
-        txt:[B,L,C]
-        '''
-        txt = self.text_project(txt)
-        txt = self.txt_pos(txt)
+        x:[B N C1]: visual features
+        txt:[B,L,C]: text features
 
+        return: [B N C1]: guided visual features
+        '''
         # Self-Attention
         vis2 = self.norm1(x)
         q = k = self.vis_pos(vis2)
@@ -83,13 +82,16 @@ class GuideDecoderLayer(nn.Module):
         vis = x + vis2
 
         # Cross-Attention
-        vis2 = self.norm2(vis)
-        vis2 = self.cross_attn(query=self.vis_pos(vis2),
-                                   key=txt,
-                                   value=txt)[0]
-        vis = vis + self.scale*vis2
+        if txt is not None:
+            vis2 = self.norm2(vis)
+            txt = self.text_project(txt)
+            txt = self.txt_pos(txt)
+            vis2 = self.cross_attn(query=self.vis_pos(vis2),
+                                    key=txt,
+                                    value=txt)[0]
+            vis = vis + self.scale*vis2
 
-        vis = vis + self.ffn(self.norm3(vis))
+            vis = vis + self.ffn(self.norm3(vis))
 
         return vis
 
@@ -106,9 +108,7 @@ class GuideDecoder(nn.Module):
     
     def forward(self, vis, skip_vis, txt):
 
-        if txt is not None:
-            vis =  self.guide_layer(vis, txt)
-
+        vis =  self.guide_layer(vis, txt)
         vis = rearrange(vis,'B (H W) C -> B C H W',H=self.spatial_size,W=self.spatial_size)
         skip_vis = rearrange(skip_vis,'B (H W) C -> B C H W',H=self.spatial_size*2,W=self.spatial_size*2)
 

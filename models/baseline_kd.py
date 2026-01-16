@@ -33,8 +33,8 @@ class BaselineKDModel(nn.Module):
 
         image_output = self.encoder(image)
         image_features, image_project = image_output['feature'], image_output['project']
-        text_output = self.text_encoder(text['input_ids'],text['attention_mask'])
-        text_embeds, text_project = text_output['feature'],text_output['project']
+        # text_output = self.text_encoder(text['input_ids'],text['attention_mask'])
+        # text_embeds, text_project = text_output['feature'],text_output['project']
 
         if len(image_features[0].shape) == 4: 
             image_features = image_features[1:]  # 4 8 16 32   convnext: Embedding + 4 layers feature map

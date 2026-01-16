@@ -113,7 +113,7 @@ class BaselineKDWrapper(pl.LightningModule):
                 self.lambda_distill_os4 * loss_os4
             )
             
-            total_loss = main_loss + distill_loss
+            total_loss = main_loss
             
             self.log('train_distill_os16', loss_os16, prog_bar=True)
             self.log('train_distill_os8', loss_os8, prog_bar=True)
