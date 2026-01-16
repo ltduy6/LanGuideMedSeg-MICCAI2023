@@ -44,9 +44,7 @@ class BaselineKDWrapper(pl.LightningModule):
         
         self.save_hyperparameters()
         
-        self.lambda_distill_os16 = args.lambda_distill_os16
-        self.lambda_distill_os8 = args.lambda_distill_os8
-        self.lambda_distill_os4 = args.lambda_distill_os4
+        self.lambda_distill = args.lambda_distill
 
         self.spatial_dim = [7,14,28,56]    # 224*224
 
@@ -110,24 +108,18 @@ class BaselineKDWrapper(pl.LightningModule):
 
             with torch.no_grad():
                 teacher_preds, teacher_return_info = self.teacher_model(x)
-                teacher_return_info['os16'] = rearrange(teacher_return_info['os16'], 'B (H W) C -> B C H W',H=self.spatial_dim[1],W=self.spatial_dim[1])
-                teacher_return_info['os8'] = rearrange(teacher_return_info['os8'], 'B (H W) C -> B C H W',H=self.spatial_dim[2],W=self.spatial_dim[2])
-                return_info['os16'] = rearrange(return_info['os16'], 'B (H W) C -> B C H W',H=self.spatial_dim[1],W=self.spatial_dim[1])
-                return_info['os8'] = rearrange(return_info['os8'], 'B (H W) C -> B C H W',H=self.spatial_dim[2],W=self.spatial_dim[2])
-                loss_os16 = self.losses['feature_distillation_loss_p1'](teacher_return_info['os16'],return_info['os16'])
-                loss_os8 = self.losses['feature_distillation_loss_p1'](teacher_return_info['os8'],return_info['os8'])
-                loss_os4 = self.losses['feature_distillation_loss_p1'](teacher_return_info['os4'],return_info['os4'])
 
-                for key in teacher_return_info:
-                    if key == 'os16':
-                        teacher_return_info[key] = rearrange(teacher_return_info[key], 'B (H W) C -> B C H W',H=self.spatial_dim[1],W=self.spatial_dim[1])
-                        return_info[key] = rearrange(return_info[key], 'B (H W) C -> B C H W',H=self.spatial_dim[1],W=self.spatial_dim[1])
-
-            distill_loss = (
-                self.lambda_distill_os16 * loss_os16 + 
-                self.lambda_distill_os8 * loss_os8 + 
-                self.lambda_distill_os4 * loss_os4
-            )
+            distill_loss = 0
+            for key in teacher_return_info:
+                if key == 'os16':
+                    teacher_return_info[key] = rearrange(teacher_return_info[key], 'B (H W) C -> B C H W',H=self.spatial_dim[1],W=self.spatial_dim[1])
+                    return_info[key] = rearrange(return_info[key], 'B (H W) C -> B C H W',H=self.spatial_dim[1],W=self.spatial_dim[1])
+                elif key == 'os8':
+                    teacher_return_info[key] = rearrange(teacher_return_info[key], 'B (H W) C -> B C H W',H=self.spatial_dim[2],W=self.spatial_dim[2])
+                    return_info[key] = rearrange(return_info[key], 'B (H W) C -> B C H W',H=self.spatial_dim[2],W=self.spatial_dim[2])
+                
+                distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p1'](teacher_return_info[key],return_info[key])
+                distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p2'](teacher_return_info[key],return_info[key])
             
             total_loss = main_loss + distill_loss
     
