@@ -108,7 +108,9 @@ class GuideDecoder(nn.Module):
     
     def forward(self, vis, skip_vis, txt):
 
-        vis =  self.guide_layer(vis, txt)
+        if txt is not None:
+            vis =  self.guide_layer(vis, txt)
+
         vis = rearrange(vis,'B (H W) C -> B C H W',H=self.spatial_size,W=self.spatial_size)
         skip_vis = rearrange(skip_vis,'B (H W) C -> B C H W',H=self.spatial_size*2,W=self.spatial_size*2)
 

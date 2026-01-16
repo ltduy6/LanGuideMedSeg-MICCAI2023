@@ -3,6 +3,7 @@ from models.teacher import TeacherModel
 from monai.losses import DiceCELoss
 from torchmetrics import Accuracy,Dice
 from torchmetrics.classification import BinaryJaccardIndex
+from einops import rearrange, repeat
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
@@ -29,15 +30,12 @@ class BaselineKDWrapper(pl.LightningModule):
 
         self.lr = args.lr
         self.history = {}
-        
-        self.loss_fn = DiceCELoss()
-        # Initialize FeatureDistillationLoss. Default to p=2 (L_FD2)
-        # You can change p=1 for L_FD1. 
-        # Ideally this should be configurable via args, but for now fixed or based on request.
-        # User requested both, let's assume valid default is needed or check args.
-        # The user said "given that z_out_1 is os4...".
-        # I'll enable p=2 by default as it's standard L2.
-        self.distill_loss_fn = FeatureDistillationLoss(p=2)
+
+        self.losses = {
+            "segmentation_loss": DiceCELoss(),
+            "feature_distillation_loss_p1": FeatureDistillationLoss(p=1),
+            "feature_distillation_loss_p2": FeatureDistillationLoss(p=2),
+        }
 
         metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex()}
         self.train_metrics = nn.ModuleDict(metrics_dict)
@@ -49,6 +47,8 @@ class BaselineKDWrapper(pl.LightningModule):
         self.lambda_distill_os16 = args.lambda_distill_os16
         self.lambda_distill_os8 = args.lambda_distill_os8
         self.lambda_distill_os4 = args.lambda_distill_os4
+
+        self.spatial_dim = [7,14,28,56]    # 224*224
 
         if args.mode == "Training":
             self.teacher_model = TeacherModel(
@@ -104,15 +104,24 @@ class BaselineKDWrapper(pl.LightningModule):
     def shared_step(self,batch,batch_idx):
         x, y = batch
         preds, return_info = self(x)
-        main_loss = self.loss_fn(preds,y)
+        main_loss = self.losses['segmentation_loss'](preds,y)
 
         if self.training:
 
             with torch.no_grad():
                 teacher_preds, teacher_return_info = self.teacher_model(x)
-                loss_os16 = self.distill_loss_fn(teacher_return_info['os16'],return_info['os16'])
-                loss_os8 = self.distill_loss_fn(teacher_return_info['os8'],return_info['os8'])
-                loss_os4 = self.distill_loss_fn(teacher_return_info['os4'],return_info['os4'])
+                teacher_return_info['os16'] = rearrange(teacher_return_info['os16'], 'B (H W) C -> B C H W',H=self.spatial_dim[1],W=self.spatial_dim[1])
+                teacher_return_info['os8'] = rearrange(teacher_return_info['os8'], 'B (H W) C -> B C H W',H=self.spatial_dim[2],W=self.spatial_dim[2])
+                return_info['os16'] = rearrange(return_info['os16'], 'B (H W) C -> B C H W',H=self.spatial_dim[1],W=self.spatial_dim[1])
+                return_info['os8'] = rearrange(return_info['os8'], 'B (H W) C -> B C H W',H=self.spatial_dim[2],W=self.spatial_dim[2])
+                loss_os16 = self.losses['feature_distillation_loss_p1'](teacher_return_info['os16'],return_info['os16'])
+                loss_os8 = self.losses['feature_distillation_loss_p1'](teacher_return_info['os8'],return_info['os8'])
+                loss_os4 = self.losses['feature_distillation_loss_p1'](teacher_return_info['os4'],return_info['os4'])
+
+                for key in teacher_return_info:
+                    if key == 'os16':
+                        teacher_return_info[key] = rearrange(teacher_return_info[key], 'B (H W) C -> B C H W',H=self.spatial_dim[1],W=self.spatial_dim[1])
+                        return_info[key] = rearrange(return_info[key], 'B (H W) C -> B C H W',H=self.spatial_dim[1],W=self.spatial_dim[1])
 
             distill_loss = (
                 self.lambda_distill_os16 * loss_os16 + 
@@ -121,11 +130,7 @@ class BaselineKDWrapper(pl.LightningModule):
             )
             
             total_loss = main_loss + distill_loss
-            
-            self.log('train_distill_os16', loss_os16, prog_bar=True)
-            self.log('train_distill_os8', loss_os8, prog_bar=True)
-            self.log('train_distill_os4', loss_os4, prog_bar=True)
-            
+    
             return {
                 'loss': total_loss, 
                 'preds': preds.detach(),
