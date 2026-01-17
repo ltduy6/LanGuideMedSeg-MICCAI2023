@@ -29,9 +29,60 @@ class FeatureDistillationLoss(nn.Module):
         diff = s_normalized - t_normalized
         dist = torch.norm(diff, p=self.p, dim=1)
         
-        if self.reduction == 'mean':
-            return dist.mean()
-        elif self.reduction == 'sum':
-            return dist.sum()
+
+class FeatureFiltrationLoss(nn.Module):
+    def __init__(self, reduction='mean'):
+        super(FeatureFiltrationLoss, self).__init__()
+        self.reduction = reduction
+        self.epsilon = 1e-8
+
+    def forward(self, teacher, student):
+        # teacher, student: [B, C, H, W] or [B, L, C]
+        
+        # 1. Compute Importance Map W_T
+        # If input is flattened [B, L, C], view it as spatial if possible or just sum over C.
+        # The prompt implies spatial W_T \in R^{H \times W}.
+        # If inputs are [B, C, H, W], we sum over C.
+        
+        if teacher.dim() == 4:
+            # [B, C, H, W]
+            # Sum absolute activations over channel dimension
+            w_t = torch.sum(torch.abs(teacher), dim=1, keepdim=True) # [B, 1, H, W]
+        elif teacher.dim() == 3:
+            # [B, L, C] -> we assume L corresponds to spatial.
+            # We can compute importance per token.
+            w_t = torch.sum(torch.abs(teacher), dim=2, keepdim=True) # [B, L, 1]
         else:
-            return dist
+            raise ValueError(f"Unsupported input shape: {teacher.shape}")
+
+        # 2. Normalize W_T to [0, 1] per sample
+        # Min-Max normalization
+        # Flatten W_T for min/max computation per sample
+        if teacher.dim() == 4:
+            w_t_flat = w_t.view(w_t.size(0), -1)
+        else:
+            w_t_flat = w_t.view(w_t.size(0), -1)
+
+        w_min = w_t_flat.min(dim=1, keepdim=True)[0].view_as(w_t)
+        w_max = w_t_flat.max(dim=1, keepdim=True)[0].view_as(w_t)
+        
+        w_t_norm = (w_t - w_min) / (w_max - w_min + self.epsilon)
+        
+        # 3. Compute Loss
+        # L_FFD = || W_T * (F_S - F_T) ||_2^2
+        diff = student - teacher
+        weighted_diff = w_t_norm * diff
+        
+        # Squared L2 norm
+        loss = torch.sum(weighted_diff ** 2, dim=tuple(range(1, weighted_diff.dim()))) 
+        # Note: torch.norm(..., p=2)**2 is sum of squares.
+        # But wait, formula usually implies mean over elements or sum.
+        # ||.||_2^2 is sum of squares of elements.
+        
+        if self.reduction == 'mean':
+            return loss.mean()
+        elif self.reduction == 'sum':
+            return loss.sum()
+        else:
+            return loss
+

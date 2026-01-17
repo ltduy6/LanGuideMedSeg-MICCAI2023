@@ -14,7 +14,7 @@ import numpy as np
 import datetime
 import torch.nn.functional as F
 from .wrapper_mapper import MapperLoss
-from utils.loss import FeatureDistillationLoss
+from utils.loss import FeatureDistillationLoss, FeatureFiltrationLoss
 
 class BaselineKDWrapper(pl.LightningModule):
 
@@ -35,6 +35,7 @@ class BaselineKDWrapper(pl.LightningModule):
             "segmentation_loss": DiceCELoss(),
             "feature_distillation_loss_p1": FeatureDistillationLoss(p=1),
             "feature_distillation_loss_p2": FeatureDistillationLoss(p=2),
+            "feature_filtration_loss": FeatureFiltrationLoss(),
         }
 
         metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex()}
