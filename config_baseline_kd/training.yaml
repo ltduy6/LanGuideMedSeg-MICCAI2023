@@ -14,9 +14,9 @@ TRAIN:
 
   model_save_path: ./save_model_qata_baseline_kd
   model_save_filename: medseg
-  best_model_path: ./save_model_qata_baseline_kd/medseg-v1.ckpt
+  best_model_path: ./save_model_qata_baseline_kd/medseg-v12.ckpt
   model: BaselineKD
-  mode: Testing
+  mode: Training
 
 TEACHER:
   teacher_model_path: ./save_model_qata_teacher/medseg.ckpt
@@ -36,6 +36,7 @@ DATA:
 
 LOSS:
   # Distillation weights
-  lambda_distill_os16: 1.0
-  lambda_distill_os8: 1.0
-  lambda_distill_os4: 1.0
+  lambda_distill_os16: 0.5
+  lambda_distill_os8: 0.5
+  lambda_distill_os4: 0.5
+  lambda_distill: 0.5

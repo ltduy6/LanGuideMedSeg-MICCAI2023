@@ -11,7 +11,7 @@ from .vision import VisionModel
 
 class LanGuideMedSeg(nn.Module):
 
-    def __init__(self, bert_type, vision_type, project_dim=512, dropout_prob=0.3, alpha=0.7, pretrained_mapper_path=None, teacher_model_path=None):
+    def __init__(self, bert_type, vision_type, project_dim=512):
 
         super(LanGuideMedSeg, self).__init__()
 
@@ -26,19 +26,6 @@ class LanGuideMedSeg(nn.Module):
         self.decoder4 = GuideDecoder(feature_dim[2],feature_dim[3],self.spatial_dim[2],24)
         self.decoder1 = SubpixelUpsample(2,feature_dim[3],24,4)
         self.out = UnetOutBlock(2, in_channels=24, out_channels=1)
-        
-        self.dropout_prob = dropout_prob
-        self.alpha = alpha
-        self.visual_text_mapper = ImageToTextSemanticMapper()
-
-        if pretrained_mapper_path is not None:
-            self.load_pretrained_mapper(pretrained_mapper_path)
-            for p in self.visual_text_mapper.parameters():
-                p.requires_grad = False
-
-        self.current_epoch = 0
-        self.max_epoch = 100
-        self.teacher_model = None
 
     def load_pretrained_mapper(self, path):
         checkpoint = torch.load(path, map_location='cpu', weights_only=False)
@@ -49,9 +36,7 @@ class LanGuideMedSeg(nn.Module):
         self.current_epoch = epoch
 
     def get_curriculum_dropout_prob(self):
-        progress = self.current_epoch / self.max_epoch
-        dropout_prob = 0.4 * (1 - progress)
-        return dropout_prob
+        return 0.4
 
     def forward(self, data):
 
@@ -86,7 +71,7 @@ class LanGuideMedSeg(nn.Module):
                 else:
                     guidance_tokens[b] = generated_visual_tokens[b]
             
-            text_embeds_last = generated_visual_tokens
+            text_embeds_last = guidance_tokens
         else:
             text_embeds_last = generated_visual_tokens
 

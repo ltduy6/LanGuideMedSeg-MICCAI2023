@@ -14,9 +14,9 @@ TRAIN:
 
   model_save_path: ./save_model_qata
   model_save_filename: medseg
-  best_model_path: ./save_model_qata/medseg-v32.ckpt
+  best_model_path: ./save_model_qata/medseg-v1.ckpt
   model: Student
-  mode: Testing
+  mode: Training
 
 TEACHER:
   teacher_model_path: ./save_model_qata_teacher/medseg.ckpt

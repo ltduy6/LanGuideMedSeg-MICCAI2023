@@ -116,7 +116,8 @@ class BaselineKDWrapper(pl.LightningModule):
                     continue
                 distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p1'](teacher_return_info[key],return_info[key])
                 distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p2'](teacher_return_info[key],return_info[key])
-            
+                distill_loss += self.lambda_distill * self.losses['feature_filtration_loss'](teacher_return_info[key],return_info[key])
+
             total_loss = main_loss + distill_loss
     
             return {
