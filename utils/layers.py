@@ -117,6 +117,6 @@ class GuideDecoder(nn.Module):
         output = self.decoder(vis,skip_vis)
         output = rearrange(output,'B C H W -> B (H W) C')
 
-        return output
+        return output, vis
 
 

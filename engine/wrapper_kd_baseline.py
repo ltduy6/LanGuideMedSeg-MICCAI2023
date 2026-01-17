@@ -111,13 +111,8 @@ class BaselineKDWrapper(pl.LightningModule):
 
             distill_loss = 0
             for key in teacher_return_info:
-                if key == 'os16':
-                    teacher_return_info[key] = rearrange(teacher_return_info[key], 'B (H W) C -> B C H W',H=self.spatial_dim[1],W=self.spatial_dim[1])
-                    return_info[key] = rearrange(return_info[key], 'B (H W) C -> B C H W',H=self.spatial_dim[1],W=self.spatial_dim[1])
-                elif key == 'os8':
-                    teacher_return_info[key] = rearrange(teacher_return_info[key], 'B (H W) C -> B C H W',H=self.spatial_dim[2],W=self.spatial_dim[2])
-                    return_info[key] = rearrange(return_info[key], 'B (H W) C -> B C H W',H=self.spatial_dim[2],W=self.spatial_dim[2])
-                
+                if key not in ["refined_os32","refined_os16","refined_os8"]:
+                    continue
                 distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p1'](teacher_return_info[key],return_info[key])
                 distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p2'](teacher_return_info[key],return_info[key])
             

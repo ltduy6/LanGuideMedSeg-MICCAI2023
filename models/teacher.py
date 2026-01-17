@@ -42,9 +42,9 @@ class TeacherModel(nn.Module):
 
         os32 = image_features[3]
 
-        os16 = self.decoder16(os32,image_features[2], text_embeds[-1])
-        os8 = self.decoder8(os16,image_features[1], text_embeds[-1])
-        os4 = self.decoder4(os8,image_features[0], text_embeds[-1])
+        os16, refined_os32 = self.decoder16(os32,image_features[2], text_embeds[-1])
+        os8, refined_os16 = self.decoder8(os16,image_features[1], text_embeds[-1])
+        os4, refined_os8 = self.decoder4(os8,image_features[0], text_embeds[-1])
         os4 = rearrange(os4, 'B (H W) C -> B C H W',H=self.spatial_dim[-1],W=self.spatial_dim[-1])
         os1 = self.decoder1(os4)
 
@@ -54,6 +54,9 @@ class TeacherModel(nn.Module):
             'os16': os16,
             'os8': os8,
             'os4': os4,
+            'refined_os32': refined_os32,
+            'refined_os16': refined_os16,
+            'refined_os8': refined_os8,
         }
 
         return out, return_info
