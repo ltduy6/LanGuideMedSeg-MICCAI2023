@@ -28,6 +28,13 @@ class FeatureDistillationLoss(nn.Module):
         # Formula: || s/|s| - t/|t| ||_p
         diff = s_normalized - t_normalized
         dist = torch.norm(diff, p=self.p, dim=1)
+
+        if self.reduction == 'mean':
+            return dist.mean()
+        elif self.reduction == 'sum':
+            return dist.sum()
+        else:
+            return dist
         
 
 class FeatureFiltrationLoss(nn.Module):
