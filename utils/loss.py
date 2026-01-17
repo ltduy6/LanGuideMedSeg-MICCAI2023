@@ -63,8 +63,18 @@ class FeatureFiltrationLoss(nn.Module):
         else:
             w_t_flat = w_t.view(w_t.size(0), -1)
 
-        w_min = w_t_flat.min(dim=1, keepdim=True)[0].view_as(w_t)
-        w_max = w_t_flat.max(dim=1, keepdim=True)[0].view_as(w_t)
+        w_min = w_t_flat.min(dim=1, keepdim=True)[0]
+        w_max = w_t_flat.max(dim=1, keepdim=True)[0]
+
+        # Reshape for broadcasting
+        if teacher.dim() == 4:
+            # [B, 1] -> [B, 1, 1, 1]
+            w_min = w_min.view(w_t.size(0), 1, 1, 1)
+            w_max = w_max.view(w_t.size(0), 1, 1, 1)
+        else:
+            # [B, 1] -> [B, 1, 1]
+            w_min = w_min.view(w_t.size(0), 1, 1)
+            w_max = w_max.view(w_t.size(0), 1, 1)
         
         w_t_norm = (w_t - w_min) / (w_max - w_min + self.epsilon)
         
