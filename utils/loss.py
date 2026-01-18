@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 class FeatureDistillationLoss(nn.Module):
     def __init__(self, p=2, reduction='mean'):
@@ -100,6 +101,36 @@ class FeatureFiltrationLoss(nn.Module):
             return loss.mean()
         elif self.reduction == 'sum':
             return loss.sum()
+
         else:
             return loss
 
+
+class LogitDistillationLoss(nn.Module):
+    def __init__(self, temperature=4.0):
+        super(LogitDistillationLoss, self).__init__()
+        self.temperature = temperature
+        self.criterion = nn.KLDivLoss(reduction='batchmean')
+
+    def forward(self, teacher_logits, student_logits):
+        # teacher_logits, student_logits: [B, 1, H, W] for binary segmentation
+        # We need to handle the binary case carefully.
+        # usually teacher_logits are raw logits.
+        
+        # B, 1, H, W -> B, 2, H, W
+        # channel 0: -logits, channel 1: logits
+        
+        s_logits_2ch = torch.cat((-student_logits, student_logits), dim=1)
+        t_logits_2ch = torch.cat((-teacher_logits, teacher_logits), dim=1)
+        
+        # Apply temperature
+        s_soft = F.log_softmax(s_logits_2ch / self.temperature, dim=1)
+        t_soft = F.softmax(t_logits_2ch / self.temperature, dim=1)
+        
+        # KL Div
+        loss = self.criterion(s_soft, t_soft)
+        
+        # Scale back
+        loss = loss * (self.temperature ** 2)
+        
+        return loss

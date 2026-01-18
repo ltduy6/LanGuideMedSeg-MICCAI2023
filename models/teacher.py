@@ -48,7 +48,8 @@ class TeacherModel(nn.Module):
         os4 = rearrange(os4, 'B (H W) C -> B C H W',H=self.spatial_dim[-1],W=self.spatial_dim[-1])
         os1 = self.decoder1(os4)
 
-        out = self.out(os1).sigmoid()
+        logits = self.out(os1)
+        out = logits.sigmoid()
 
         return_info = {
             'os16': os16,
@@ -57,6 +58,7 @@ class TeacherModel(nn.Module):
             'refined_os32': refined_os32,
             'refined_os16': refined_os16,
             'refined_os8': refined_os8,
+            'logits': logits,
         }
 
         return out, return_info
