@@ -39,4 +39,4 @@ LOSS:
   lambda_distill_os16: 0.5
   lambda_distill_os8: 0.5
   lambda_distill_os4: 0.5
-  lambda_distill: 0.5
+  lambda_distill: 1
