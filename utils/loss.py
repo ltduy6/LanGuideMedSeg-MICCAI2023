@@ -161,8 +161,8 @@ class MultiTemperatureKDLoss(nn.Module):
             p_s_bg = 1.0 - p_s_fg
             
             # 2. Stack into 2-class distributions: [B, 2, H, W]
-            p_t = torch.stack([p_t_bg, p_t_fg], dim=1)
-            p_s = torch.stack([p_s_bg, p_s_fg], dim=1)
+            p_t = torch.cat([p_t_bg, p_t_fg], dim=1)
+            p_s = torch.cat([p_s_bg, p_s_fg], dim=1)
             
             # 3. Flatten over pixels: [N, 2] where N = B*H*W
             # permute to [B, H, W, 2] then reshape
