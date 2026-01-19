@@ -14,7 +14,7 @@ import numpy as np
 import datetime
 import torch.nn.functional as F
 from .wrapper_mapper import MapperLoss
-from utils.loss import FeatureDistillationLoss, FeatureFiltrationLoss, LogitDistillationLoss
+from utils.loss import FeatureDistillationLoss, FeatureFiltrationLoss, LogitDistillationLoss, MultiTemperatureKDLoss
 
 class BaselineKDWrapper(pl.LightningModule):
 
@@ -37,6 +37,7 @@ class BaselineKDWrapper(pl.LightningModule):
             "feature_distillation_loss_p2": FeatureDistillationLoss(p=2),
             "feature_filtration_loss": FeatureFiltrationLoss(),
             "logit_distillation_loss": LogitDistillationLoss(temperature=4.0),
+            "multi_temperature_kd_loss": MultiTemperatureKDLoss(temps=[2.0, 3.0, 4.0, 5.0, 6.0]),
         }
 
         metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex()}
@@ -47,6 +48,7 @@ class BaselineKDWrapper(pl.LightningModule):
         self.save_hyperparameters()
         
         self.lambda_distill = args.lambda_distill
+        self.lambda_multi_temp = args.lambda_multi_temp
 
         self.spatial_dim = [7,14,28,56]    # 224*224
 
@@ -121,6 +123,7 @@ class BaselineKDWrapper(pl.LightningModule):
 
             if 'logits' in teacher_return_info and 'logits' in return_info:
                  distill_loss += self.lambda_distill * self.losses['logit_distillation_loss'](teacher_return_info['logits'], return_info['logits'])
+                 distill_loss += self.lambda_multi_temp * self.losses['multi_temperature_kd_loss'](teacher_return_info['logits'], return_info['logits'])
 
             total_loss = main_loss + distill_loss
     
