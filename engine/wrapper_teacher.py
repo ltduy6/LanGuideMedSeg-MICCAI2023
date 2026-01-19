@@ -27,7 +27,7 @@ class TeacherWrapper(pl.LightningModule):
         self.lr = args.lr
         self.history = {}
         
-        self.loss_fn = DiceCELoss()
+        self.loss_fn = nn.BCEWithLogitsLoss()
 
         metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex()}
         self.train_metrics = nn.ModuleDict(metrics_dict)
@@ -51,7 +51,7 @@ class TeacherWrapper(pl.LightningModule):
     def shared_step(self,batch,batch_idx):
         x, y = batch
         preds, return_info = self(x)
-        main_loss = self.loss_fn(preds,y)
+        main_loss = self.loss_fn(return_info['logits'], y.float())
 
         return {
                 'loss': main_loss,
