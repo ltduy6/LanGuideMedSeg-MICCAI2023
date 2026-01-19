@@ -40,3 +40,4 @@ LOSS:
   lambda_distill_os8: 0.5
   lambda_distill_os4: 0.5
   lambda_distill: 1
+  lambda_multi_temp: 1.0

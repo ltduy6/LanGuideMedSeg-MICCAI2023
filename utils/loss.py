@@ -134,3 +134,55 @@ class LogitDistillationLoss(nn.Module):
         loss = loss * (self.temperature ** 2)
         
         return loss
+
+
+class MultiTemperatureKDLoss(nn.Module):
+    def __init__(self, temps=[2.0, 3.0, 4.0, 5.0, 6.0], reduction='batchmean'):
+        super(MultiTemperatureKDLoss, self).__init__()
+        self.temps = temps
+        self.reduction = reduction
+        self.criterion = nn.KLDivLoss(reduction=reduction)
+
+    def forward(self, teacher_logits, student_logits):
+        # teacher_logits, student_logits: [B, 1, H, W]
+        # returns scalar loss
+
+        total_loss = 0.0
+
+        for t in self.temps:
+            # 1. Compute temperature-scaled probabilities
+            # p_t_fg = sigmoid(logits_teacher / t)
+            # p_s_fg = sigmoid(logits_student / t)
+            
+            p_t_fg = torch.sigmoid(teacher_logits / t)
+            p_s_fg = torch.sigmoid(student_logits / t)
+            
+            p_t_bg = 1.0 - p_t_fg
+            p_s_bg = 1.0 - p_s_fg
+            
+            # 2. Stack into 2-class distributions: [B, 2, H, W]
+            p_t = torch.stack([p_t_bg, p_t_fg], dim=1)
+            p_s = torch.stack([p_s_bg, p_s_fg], dim=1)
+            
+            # 3. Flatten over pixels: [N, 2] where N = B*H*W
+            # permute to [B, H, W, 2] then reshape
+            pt_flat = p_t.permute(0, 2, 3, 1).reshape(-1, 2)
+            ps_flat = p_s.permute(0, 2, 3, 1).reshape(-1, 2)
+            
+            # 4. Compute pixel-wise KL(teacher || student)
+            # KLDivLoss expects input in log-space (log-probabilities) and target as probabilities
+            # So apply log to student probs
+            
+            # p_s might be 0 or 1, so clamp or add epsilon for stability before log?
+            # However, sigmoid output is (0, 1) strictly unless large logits.
+            # To be safe, we can use log_softmax on the logits constructed from probs?
+            # Actually, standard way if we have probabilities `ps_flat` is `ps_flat.log()`.
+            # Let's add epsilon for numerical stability.
+            
+            ps_log = torch.log(ps_flat + 1e-8)
+            
+            loss_t = self.criterion(ps_log, pt_flat)
+            
+            total_loss += loss_t
+            
+        return total_loss
