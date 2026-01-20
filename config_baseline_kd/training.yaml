@@ -7,19 +7,19 @@ TRAIN:
   image_size: [224,224]
 
   min_epochs: 20
-  max_epochs: 100
+  max_epochs: 150
   patience: 30
 
   device: 1
 
   model_save_path: ./save_model_qata_baseline_kd
   model_save_filename: medseg
-  best_model_path: ./save_model_qata_baseline_kd/medseg.ckpt
+  best_model_path: ./save_model_qata_baseline_kd/medseg-v5.ckpt
   model: BaselineKD
   mode: Training
 
 TEACHER:
-  teacher_model_path: ./save_model_qata_teacher/medseg.ckpt
+  teacher_model_path: ./save_model_qata_teacher/medseg-v7.ckpt
 
 MODEL:
   bert_type: microsoft/BiomedVLP-CXR-BERT-specialized
@@ -36,8 +36,8 @@ DATA:
 
 LOSS:
   # Distillation weights
-  lambda_distill_os16: 0.5
-  lambda_distill_os8: 0.5
-  lambda_distill_os4: 0.5
+  lambda_distill_os16: 1
+  lambda_distill_os8: 1
+  lambda_distill_os4: 1
   lambda_distill: 1
-  lambda_multi_temp: 1.0
+  lambda_multi_temp: 1
