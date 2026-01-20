@@ -122,8 +122,8 @@ class BaselineKDWrapper(pl.LightningModule):
                 # distill_loss += self.lambda_distill * self.losses['feature_filtration_loss'](teacher_return_info[key],return_info[key])
 
             if 'logits' in teacher_return_info and 'logits' in return_info:
-                # distill_loss += self.lambda_distill * self.losses['logit_distillation_loss'](teacher_return_info['logits'], return_info['logits'])
-                distill_loss += self.lambda_multi_temp * self.losses['multi_temperature_kd_loss'](teacher_return_info['logits'], return_info['logits'])
+                distill_loss += self.lambda_distill * self.losses['logit_distillation_loss'](teacher_return_info['logits'], return_info['logits'])
+                # distill_loss += self.lambda_multi_temp * self.losses['multi_temperature_kd_loss'](teacher_return_info['logits'], return_info['logits'])
 
             total_loss = main_loss + distill_loss
     
