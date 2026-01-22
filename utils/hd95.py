@@ -4,7 +4,7 @@ import torch.nn as nn
 
 class HD95Wrapper(nn.Module):
     """Wrapper to make MONAI's compute_hausdorff_distance compatible with nn.ModuleDict"""
-    def __init__(self, percentile=95, include_background=False):
+    def __init__(self, percentile=95, include_background=True):
         super().__init__()
         self.percentile = percentile
         self.include_background = include_background

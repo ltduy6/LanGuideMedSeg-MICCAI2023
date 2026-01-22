@@ -115,11 +115,11 @@ class BaselineKDWrapper(pl.LightningModule):
                 teacher_preds, teacher_return_info = self.teacher_model(x)
 
             distill_loss = 0
-            # for key in teacher_return_info:
-            #     if key not in ["refined_os32","refined_os16","refined_os8"]:
-            #         continue
-            #     distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p1'](teacher_return_info[key],return_info[key])
-            #     distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p2'](teacher_return_info[key],return_info[key])
+            for key in teacher_return_info:
+                if key not in ["refined_os32","refined_os16","refined_os8", "refined_os4", "refined_os1"]:
+                    continue
+                # distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p1'](teacher_return_info[key],return_info[key])
+                distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p2'](teacher_return_info[key],return_info[key])
                 # distill_loss += self.lambda_distill * self.losses['feature_filtration_loss'](teacher_return_info[key],return_info[key])
 
             if 'logits' in teacher_return_info and 'logits' in return_info:

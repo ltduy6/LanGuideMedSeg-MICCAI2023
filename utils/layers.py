@@ -101,14 +101,17 @@ class GuideDecoder(nn.Module):
 
         super().__init__()
 
-        self.guide_layer = GuideDecoderLayer(in_channels,text_len)   # for skip
+        if text_len is not None:
+            self.guide_layer = GuideDecoderLayer(in_channels,text_len)   # for skip
+        else:
+            self.guide_layer = None
         self.spatial_size = spatial_size
         self.decoder = UnetrUpBlock(2,in_channels,out_channels,3,2,norm_name='BATCH')
 
     
     def forward(self, vis, skip_vis, txt):
 
-        if txt is not None:
+        if txt is not None and self.guide_layer is not None:
             vis =  self.guide_layer(vis, txt)
 
         vis = rearrange(vis,'B (H W) C -> B C H W',H=self.spatial_size,W=self.spatial_size)

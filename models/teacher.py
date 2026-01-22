@@ -32,7 +32,7 @@ class TeacherModel(nn.Module):
             image = repeat(image,'b 1 h w -> b c h w',c=3)
 
         image_output = self.encoder(image)
-        image_features, image_project = image_output['feature'], image_output['project']
+        image_features = image_output['feature']
         text_output = self.text_encoder(text['input_ids'],text['attention_mask'])
         text_embeds = text_output['feature']
 
@@ -52,12 +52,11 @@ class TeacherModel(nn.Module):
         out = logits.sigmoid()
 
         return_info = {
-            'os16': os16,
-            'os8': os8,
-            'os4': os4,
             'refined_os32': refined_os32,
             'refined_os16': refined_os16,
             'refined_os8': refined_os8,
+            'refined_os4': os4,
+            'refined_os1': os1,
             'logits': logits,
         }
 
