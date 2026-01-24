@@ -4,6 +4,7 @@
 #SBATCH --ntasks=1               # total number of tasks across all nodes
 #SBATCH --cpus-per-task=1        # cpu-cores per task (>1 if multi-threaded tasks)
 #SBATCH --mem-per-cpu=12G         # memory per cpu-core (4G is default)
+#SBATCH --nodelist=gpu01
 #SBATCH --gres=gpu:1             # number of gpus per node
 #SBATCH --time=10:00:00          # total run time limit (HH:MM:SS)
 #SBATCH --output=logs_teacher_mosmed/%x_%j.out  # output
@@ -27,4 +28,4 @@ source /media02/tphung/third-parties/miniconda3/bin/activate vlm-Duy
 # run code
 cd /media02/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023
 python train.py --config ./config_teacher/training_mosmed.yaml
-python evaluate.py --config ./config_teacher/training_mosmed.yaml
+# python evaluate.py --config ./config_teacher/training_mosmed.yaml

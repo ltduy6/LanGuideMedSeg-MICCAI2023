@@ -1,0 +1,81 @@
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/monai/utils/module.py:367: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  pkg = __import__(module)  # top level module
+Initializing MosMedPlus dataset...
+Dataset length: 273
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Fetched one item from dataset successfully.
+Traceback (most recent call last):
+  File "/media02/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/debug_mosmed.py", line 39, in <module>
+    main()
+  File "/media02/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/debug_mosmed.py", line 30, in main
+    for item in dataset:
+  File "/media02/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/utils/dataset.py", line 138, in __getitem__
+    if gt[0,i,j] != gt[1,i,j] or gt[0,i,j] != gt[2,i,j]:
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/monai/data/meta_tensor.py", line 249, in __torch_function__
+    ret = super().__torch_function__(func, types, args, kwargs)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/torch/_tensor.py", line 1650, in __torch_function__
+    if not all(issubclass(cls, t) for t in types):
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/torch/_tensor.py", line 1650, in <genexpr>
+    if not all(issubclass(cls, t) for t in types):
+KeyboardInterrupt

@@ -1,4 +1,4 @@
-from engine.wrapper import LanGuideMedSegWrapper
+from engine.wrapper_student import StudentWrapper
 from engine.wrapper_teacher import TeacherWrapper
 from engine.wrapper_kd_baseline import BaselineKDWrapper
 import open_clip
@@ -8,7 +8,7 @@ def get_model(args):
     if args.wrapper == "Teacher":
         return TeacherWrapper(args)
     elif args.wrapper == "Student":
-        return LanGuideMedSegWrapper(args)
+        return StudentWrapper(args)
     elif args.wrapper == "BaselineKD":
         return BaselineKDWrapper(args)
     else:

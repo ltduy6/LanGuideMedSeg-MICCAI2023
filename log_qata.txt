@@ -5,34 +5,31 @@
 /media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/torch/utils/data/dataloader.py:627: UserWarning: This DataLoader will create 8 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
   warnings.warn(
 cuda: True
-Loaded teacher model from ./save_model_qata_teacher/medseg.ckpt
+Loaded teacher model from ./save_model_qata_teacher/medseg-v7.ckpt
 model:  BaselineKD
-2026-01-17 12:08:04,162 - GPU available: True (cuda), used: True
-2026-01-17 12:08:04,163 - TPU available: False, using: 0 TPU cores
-2026-01-17 12:08:04,163 - IPU available: False, using: 0 IPUs
-2026-01-17 12:08:04,163 - HPU available: False, using: 0 HPUs
+2026-01-23 00:43:00,283 - GPU available: True (cuda), used: True
+2026-01-23 00:43:00,284 - TPU available: False, using: 0 TPU cores
+2026-01-23 00:43:00,284 - IPU available: False, using: 0 IPUs
+2026-01-23 00:43:00,284 - HPU available: False, using: 0 HPUs
 /media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/logger_connector/logger_connector.py:67: UserWarning: Starting from v1.9.0, `tensorboardX` has been removed as a dependency of the `pytorch_lightning` package, due to potential conflicts with other packages in the ML ecosystem. For this reason, `logger=True` will use `CSVLogger` as the default logger, unless the `tensorboard` or `tensorboardX` packages are found. Please `pip install lightning[extra]` or one of them to enable TensorBoard support by default
   warning_cache.warn(
-/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py:612: UserWarning: Checkpoint directory ./save_model_qata_baseline_kd exists and is not empty.
-  rank_zero_warn(f"Checkpoint directory {dirpath} exists and is not empty.")
 start training
-2026-01-17 12:08:04,780 - LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
-2026-01-17 12:08:04,812 - 
+2026-01-23 00:43:00,366 - You are using a CUDA device ('NVIDIA A100-PCIE-40GB') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+2026-01-23 00:43:00,779 - LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+2026-01-23 00:43:00,793 - 
   | Name          | Type            | Params
 --------------------------------------------------
-0 | model         | BaselineKDModel | 159 M 
+0 | model         | BaselineKDModel | 34.9 M
 1 | train_metrics | ModuleDict      | 0     
 2 | val_metrics   | ModuleDict      | 0     
 3 | test_metrics  | ModuleDict      | 0     
-4 | teacher_model | TeacherModel    | 159 M 
+4 | teacher_model | TeacherModel    | 158 M 
 --------------------------------------------------
-50.2 M    Trainable params
-269 M     Non-trainable params
-319 M     Total params
-1,278.259 Total estimated model params size (MB)
-2026-01-17 12:08:04,830 - SLURM auto-requeueing enabled. Setting signal handlers.
-/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/torch/_tensor.py:1654: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
-  ret = func(*args, **kwargs)
+34.9 M    Trainable params
+158 M     Non-trainable params
+192 M     Total params
+771.751   Total estimated model params size (MB)
+2026-01-23 00:43:00,896 - SLURM auto-requeueing enabled. Setting signal handlers.
 /media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/torch/_tensor.py:1654: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
   ret = func(*args, **kwargs)
 /media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/monai/data/__init__.py:120: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
@@ -49,16 +46,65 @@ start training
   ret = func(*args, **kwargs)
 /media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/torch/_tensor.py:1654: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
   ret = func(*args, **kwargs)
-<<<<<< reach best val_loss : 0.8126473426818848 >>>>>>
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/torch/_tensor.py:1654: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  ret = func(*args, **kwargs)
+<<<<<< reach best val_loss : 0.8313441872596741 >>>>>>
 
-================================================================================2026-01-17 12:08:11
-{'epoch': 0, 'val_loss': 0.8126473426818848, 'val_acc': 0.1208670511841774, 'val_dice': 0.2116369754076004, 'val_MIoU': 0.11834117025136948}
-<<<<<< reach best val_loss : 0.2911809980869293 >>>>>>
+================================================================================2026-01-23 00:43:06
+{'epoch': 0, 'val_loss': 0.8313441872596741, 'val_acc': 0.8427684307098389, 'val_dice': 0.0037882374599575996, 'val_MIoU': 0.00189771328587085, 'val_hd95': 112.97575378417969}
+<<<<<< reach best val_loss : 0.31710243225097656 >>>>>>
 
-================================================================================2026-01-17 12:10:32
-{'epoch': 0, 'val_loss': 0.2911809980869293, 'val_acc': 0.9648228287696838, 'val_dice': 0.8014660477638245, 'val_MIoU': 0.6687053442001343}
-{'epoch': 0, 'train_loss': 301424.9375, 'train_acc': 0.9187217354774475, 'train_dice': 0.7292214035987854, 'train_MIoU': 0.5738382339477539}
-2026-01-17 12:10:32,956 - Epoch 0, global step 179: 'val_loss' reached 0.29118 (best 0.29118), saving model to './save_model_qata_baseline_kd/medseg-v12.ckpt' as top 1
-/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py:48: UserWarning: Detected KeyboardInterrupt, attempting graceful shutdown...
-  rank_zero_warn("Detected KeyboardInterrupt, attempting graceful shutdown...")
-done training
+================================================================================2026-01-23 00:45:14
+{'epoch': 0, 'val_loss': 0.31710243225097656, 'val_acc': 0.9612741470336914, 'val_dice': 0.7772288918495178, 'val_MIoU': 0.6356289982795715, 'val_hd95': 47.15060806274414}
+{'epoch': 0, 'train_loss': 104098.734375, 'train_acc': 0.9421526193618774, 'train_dice': 0.7738638520240784, 'train_MIoU': 0.6311402320861816, 'train_hd95': 42.81003952026367}
+2026-01-23 00:45:14,098 - Epoch 0, global step 179: 'val_loss' reached 0.31710 (best 0.31710), saving model to '/raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_qata_baseline_kd/medseg.ckpt' as top 1
+Traceback (most recent call last):
+  File "/media02/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/train.py", line 99, in <module>
+    trainer.fit(model,dl_train,dl_valid)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 608, in fit
+    call._call_and_handle_interrupt(
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py", line 38, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 650, in _fit_impl
+    self._run(model, ckpt_path=self.ckpt_path)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1103, in _run
+    results = self._run_stage()
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1182, in _run_stage
+    self._run_train()
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1205, in _run_train
+    self.fit_loop.run()
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/loops/loop.py", line 200, in run
+    self.on_advance_end()
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/loops/fit_loop.py", line 295, in on_advance_end
+    self.trainer._call_callback_hooks("on_train_epoch_end")
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1385, in _call_callback_hooks
+    fn(self, self.lightning_module, *args, **kwargs)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py", line 303, in on_train_epoch_end
+    self._save_topk_checkpoint(trainer, monitor_candidates)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py", line 360, in _save_topk_checkpoint
+    self._save_monitor_checkpoint(trainer, monitor_candidates)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py", line 658, in _save_monitor_checkpoint
+    self._update_best_and_save(current, trainer, monitor_candidates)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py", line 709, in _update_best_and_save
+    self._save_checkpoint(trainer, filepath)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py", line 365, in _save_checkpoint
+    trainer.save_checkpoint(filepath, self.save_weights_only)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1930, in save_checkpoint
+    self._checkpoint_connector.save_checkpoint(filepath, weights_only=weights_only, storage_options=storage_options)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/checkpoint_connector.py", line 511, in save_checkpoint
+    self.trainer.strategy.save_checkpoint(_checkpoint, filepath, storage_options=storage_options)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/strategies/strategy.py", line 466, in save_checkpoint
+    self.checkpoint_io.save_checkpoint(checkpoint, filepath, storage_options=storage_options)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/lightning_fabric/plugins/io/torch_io.py", line 51, in save_checkpoint
+    fs.makedirs(os.path.dirname(path), exist_ok=True)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/fsspec/implementations/local.py", line 53, in makedirs
+    os.makedirs(path, exist_ok=exist_ok)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/os.py", line 215, in makedirs
+    makedirs(head, exist_ok=exist_ok)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/os.py", line 215, in makedirs
+    makedirs(head, exist_ok=exist_ok)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/os.py", line 215, in makedirs
+    makedirs(head, exist_ok=exist_ok)
+  File "/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/os.py", line 225, in makedirs
+    mkdir(name, mode)
+PermissionError: [Errno 13] Permission denied: '/raid/tphung'

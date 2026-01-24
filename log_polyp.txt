@@ -1,0 +1,104 @@
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/monai/utils/module.py:367: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  pkg = __import__(module)  # top level module
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/torch/utils/data/dataloader.py:627: UserWarning: This DataLoader will create 32 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/torch/utils/data/dataloader.py:627: UserWarning: This DataLoader will create 8 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/lightning_fabric/plugins/environments/slurm.py:166: PossibleUserWarning: The `srun` command is available on your system but is not used. HINT: If your intention is to run Lightning on SLURM, prepend your python command with `srun` like so: srun python train.py --config config_teacher/training_clinic.yam ...
+  rank_zero_warn(
+cuda: True
+model:  Teacher
+2026-01-23 14:38:17,980 - GPU available: True (cuda), used: True
+2026-01-23 14:38:17,981 - TPU available: False, using: 0 TPU cores
+2026-01-23 14:38:17,981 - IPU available: False, using: 0 IPUs
+2026-01-23 14:38:17,981 - HPU available: False, using: 0 HPUs
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/logger_connector/logger_connector.py:67: UserWarning: Starting from v1.9.0, `tensorboardX` has been removed as a dependency of the `pytorch_lightning` package, due to potential conflicts with other packages in the ML ecosystem. For this reason, `logger=True` will use `CSVLogger` as the default logger, unless the `tensorboard` or `tensorboardX` packages are found. Please `pip install lightning[extra]` or one of them to enable TensorBoard support by default
+  warning_cache.warn(
+start training
+2026-01-23 14:38:18,857 - You are using a CUDA device ('NVIDIA A100-SXM4-40GB') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py:612: UserWarning: Checkpoint directory /raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_clinic_teacher exists and is not empty.
+  rank_zero_warn(f"Checkpoint directory {dirpath} exists and is not empty.")
+2026-01-23 14:38:20,422 - LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+2026-01-23 14:38:20,434 - 
+  | Name          | Type         | Params
+-----------------------------------------------
+0 | model         | TeacherModel | 156 M 
+1 | loss_fn       | DiceCELoss   | 0     
+2 | train_metrics | ModuleDict   | 0     
+3 | val_metrics   | ModuleDict   | 0     
+4 | test_metrics  | ModuleDict   | 0     
+-----------------------------------------------
+48.4 M    Trainable params
+108 M     Non-trainable params
+156 M     Total params
+626.759   Total estimated model params size (MB)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable 	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISMTOKENIZERS_PARALLELISM=(true | false)
+=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/torch/_tensor.py:1654: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  ret = func(*args, **kwargs)
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/monai/data/__init__.py:120: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  t = cls([], dtype=storage.dtype, device=storage.device)
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/torch/_tensor.py:1654: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  ret = func(*args, **kwargs)
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/torch/_tensor.py:1654: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  ret = func(*args, **kwargs)
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/torch/_tensor.py:1654: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  ret = func(*args, **kwargs)
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/torch/_tensor.py:1654: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  ret = func(*args, **kwargs)
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/torch/_tensor.py:1654: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  ret = func(*args, **kwargs)
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/torch/_tensor.py:1654: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  ret = func(*args, **kwargs)
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/torch/_tensor.py:1654: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  ret = func(*args, **kwargs)
+<<<<<< reach best val_loss : 0.7090734243392944 >>>>>>
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py:1600: PossibleUserWarning: The number of training batches (14) is smaller than the logging interval Trainer(log_every_n_steps=50). Set a lower value for log_every_n_steps if you want to see logs for the training epoch.
+  rank_zero_warn(
+
+================================================================================2026-01-23 14:38:28
+{'epoch': 0, 'val_loss': 0.7090734243392944, 'val_acc': 0.22492451965808868, 'val_dice': 0.34517624974250793, 'val_MIoU': 0.2085879147052765, 'val_hd95': 118.61138153076172}
+<<<<<< reach best val_loss : 0.42004480957984924 >>>>>>
+
+================================================================================2026-01-23 14:38:56
+{'epoch': 0, 'val_loss': 0.42004480957984924, 'val_acc': 0.9586876034736633, 'val_dice': 0.7285984754562378, 'val_MIoU': 0.5730671286582947, 'val_hd95': 38.489906311035156}
+{'epoch': 0, 'train_loss': 0.6505270004272461, 'train_acc': 0.6801556944847107, 'train_dice': 0.34404346346855164, 'train_MIoU': 0.2077612280845642, 'train_hd95': 94.18067932128906}
+2026-01-23 14:38:56,131 - Epoch 0, global step 14: 'val_loss' reached 0.42004 (best 0.42004), saving model to '/raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_clinic_teacher/medseg-v4.ckpt' as top 1
+
+================================================================================2026-01-23 14:39:18
+{'epoch': 1, 'val_loss': 0.4496327042579651, 'val_acc': 0.908925473690033, 'val_dice': 0.6248857378959656, 'val_MIoU': 0.45442458987236023, 'val_hd95': 71.95513916015625}
+{'epoch': 1, 'train_loss': 0.306278795003891, 'train_acc': 0.8962343335151672, 'train_dice': 0.615152895450592, 'train_MIoU': 0.4442027509212494, 'train_hd95': 41.48786544799805}
+2026-01-23 14:39:18,818 - Epoch 1, global step 28: 'val_loss' was not in top 1
+/media02/tphung/third-parties/miniconda3/envs/vlm-Duy/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py:48: UserWarning: Detected KeyboardInterrupt, attempting graceful shutdown...
+  rank_zero_warn("Detected KeyboardInterrupt, attempting graceful shutdown...")
+done training

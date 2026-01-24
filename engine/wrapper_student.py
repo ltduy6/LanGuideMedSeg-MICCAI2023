@@ -1,5 +1,5 @@
-from models.student import LanGuideMedSeg
-from models.teacher import TeacherModel
+from models.student import StudentModel
+from models.biomedCLIP import BiomedCLIPSeg
 from monai.losses import DiceCELoss
 from torchmetrics import Accuracy,Dice
 from torchmetrics.classification import BinaryJaccardIndex
@@ -12,15 +12,15 @@ import sys
 import numpy as np
 import datetime
 import torch.nn.functional as F
-from .wrapper_mapper import MapperLoss
+from utils.hd95 import HD95Wrapper
 
-class LanGuideMedSegWrapper(pl.LightningModule):
+class StudentWrapper(pl.LightningModule):
 
     def __init__(self, args):
-        
-        super(LanGuideMedSegWrapper, self).__init__()
-        
-        self.model = LanGuideMedSeg(
+
+        super(StudentWrapper, self).__init__()
+
+        self.model = StudentModel(
             args.bert_type,
             args.vision_type,
             args.project_dim
@@ -30,54 +30,14 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         self.history = {}
         
         self.loss_fn = DiceCELoss()
-        self.distill_loss_fn = nn.MSELoss()
 
-        metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex()}
+        metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex(),"hd95": HD95Wrapper(percentile=95, include_background=True)}
         self.train_metrics = nn.ModuleDict(metrics_dict)
         self.val_metrics = deepcopy(self.train_metrics)
         self.test_metrics = deepcopy(self.train_metrics)
         
         self.save_hyperparameters()
 
-        if args.mode == "Training":
-            self.teacher_model = TeacherModel(
-                args.bert_type,
-                args.vision_type,
-                args.project_dim
-            )
-            self.load_teacher_model(args.teacher_model_path)
-            for p in self.teacher_model.parameters():
-                p.requires_grad = False 
-        
-    def load_teacher_model(self, path):
-        try:
-            checkpoint = torch.load(path, map_location='cpu', weights_only=False)
-            
-            # 1. Try 'state_dict' (PL default) or 'model_state_dict' (Custom)
-            if 'state_dict' in checkpoint:
-                state_dict = checkpoint['state_dict']
-            elif 'model_state_dict' in checkpoint:
-                state_dict = checkpoint['model_state_dict']
-            else:
-                state_dict = checkpoint # Maybe it's just the state dict
-            
-            # 2. Fix key prefix if trained with Wrapper
-            # TeacherWrapper has self.model, so keys are 'model.xxx'
-            # We want to load into self.teacher_model (which is a TeacherModel)
-            new_state_dict = {}
-            for k, v in state_dict.items():
-                if k.startswith('model.'):
-                    new_state_dict[k[6:]] = v # remove 'model.'
-                else:
-                    new_state_dict[k] = v
-            
-            self.teacher_model.load_state_dict(new_state_dict)
-            print(f"Loaded teacher model from {path}")
-            
-        except Exception as e:
-            print(f"Failed to load teacher model: {e}")
-            raise e
-    
     def configure_optimizers(self):
 
         optimizer = torch.optim.AdamW(self.model.parameters(),lr = self.lr)
@@ -93,40 +53,14 @@ class LanGuideMedSegWrapper(pl.LightningModule):
     def shared_step(self,batch,batch_idx):
         x, y = batch
         preds, return_info = self(x)
-        main_loss = self.loss_fn(preds,y)
+        main_loss = self.loss_fn(preds, y.float())
 
-        if self.training:
-            with torch.no_grad():
-                teacher_preds, teacher_return_info = self.teacher_model(x)
-                loss_os16 = self.distill_loss_fn(teacher_return_info['os16'],return_info['os16'])
-                loss_os8 = self.distill_loss_fn(teacher_return_info['os8'],return_info['os8'])
-                loss_os4 = self.distill_loss_fn(teacher_return_info['os4'],return_info['os4'])
-            
-            distill_loss = (
-                self.lambda_distill_os16 * loss_os16 + 
-                self.lambda_distill_os8 * loss_os8 + 
-                self.lambda_distill_os4 * loss_os4
-            )
-
-            total_loss = main_loss + distill_loss
-            
-            self.log('train_distill_os16', loss_os16, prog_bar=True)
-            self.log('train_distill_os8', loss_os8, prog_bar=True)
-            self.log('train_distill_os4', loss_os4, prog_bar=True)
-            
-            return {
-                'loss': total_loss,
-                'preds': preds.detach(),
-                'y': y.detach(),
-                'main_loss': main_loss.detach()
-            }
-        else:
-            return {
+        return {
                 'loss': main_loss,
                 'preds': preds.detach(),
                 'y': y.detach(),
-                'main_loss': main_loss.detach()
-            }
+        }
+            
 
     def training_step(self, batch, batch_idx):
         return self.shared_step(batch,batch_idx)
@@ -212,12 +146,3 @@ class LanGuideMedSegWrapper(pl.LightningModule):
     def print_bar(self): 
         nowtime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         self.print("\n"+"="*80 + "%s"%nowtime)
-
-    def on_train_epoch_start(self):
-        self.model.set_epoch(self.current_epoch)
-
-    def on_save_checkpoint(self, checkpoint):
-        # Remove teacher model from state_dict to save space since it is frozen
-        keys_to_remove = [k for k in checkpoint['state_dict'].keys() if k.startswith("teacher_model.")]
-        for k in keys_to_remove:
-            del checkpoint['state_dict'][k]

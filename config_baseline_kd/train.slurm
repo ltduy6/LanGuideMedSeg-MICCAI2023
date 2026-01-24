@@ -5,6 +5,7 @@
 #SBATCH --cpus-per-task=1        # cpu-cores per task (>1 if multi-threaded tasks)
 #SBATCH --mem-per-cpu=12G         # memory per cpu-core (4G is default)
 #SBATCH --gres=gpu:1             # number of gpus per node
+#SBATCH --nodelist=gpu01
 #SBATCH --time=10:00:00          # total run time limit (HH:MM:SS)
 #SBATCH --output=logs_baseline_kd_qata/%x_%j.out  # output
 #SBATCH --error=logs_baseline_kd_qata/%x_%j.err   # error
@@ -12,7 +13,7 @@
 echo "My SLURM_ARRAY_JOB_ID is $SLURM_ARRAY_JOB_ID."
 echo "My SLURM_ARRAY_TASK_ID is $SLURM_ARRAY_TASK_ID"
 echo "Executing on the machine:" $(hostname)
-echo "Train Student model with feature filtration distillation + feature distillation from Teacher model"
+echo "Train Student model with 1 Multiple Temperature Logit Distillation + 1 Importance Map Distillation with [refined_os32, refined_os16, refined_os8, os4, os1] full caption with teacher model MedSeg-v7 on QATA dataset"
 
 # load necessary modules
 # module load cuda-11.4.0-gcc-11.4.0-awtybpn

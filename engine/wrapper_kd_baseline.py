@@ -1,4 +1,4 @@
-from models.baseline_kd import BaselineKDModel
+from models.student import StudentModel
 from models.teacher import TeacherModel
 from monai.losses import DiceCELoss
 from torchmetrics import Accuracy,Dice
@@ -13,7 +13,6 @@ import sys
 import numpy as np
 import datetime
 import torch.nn.functional as F
-from .wrapper_mapper import MapperLoss
 from utils.loss import FeatureDistillationLoss, FeatureFiltrationLoss, LogitDistillationLoss, MultiTemperatureKDLoss
 from utils.hd95 import HD95Wrapper
 
@@ -22,8 +21,8 @@ class BaselineKDWrapper(pl.LightningModule):
     def __init__(self, args):
         
         super(BaselineKDWrapper, self).__init__()
-        
-        self.model = BaselineKDModel(
+
+        self.model = StudentModel(
             args.bert_type,
             args.vision_type,
             args.project_dim

@@ -55,7 +55,6 @@ if __name__ == '__main__':
     dl_valid = DataLoader(ds_valid, batch_size=args.valid_batch_size, shuffle=False, num_workers=args.valid_batch_size)
 
     model = get_model(args)
-    print('model: ', args.model)
 
     ## 1. setting recall function
     model_ckpt = ModelCheckpoint(
