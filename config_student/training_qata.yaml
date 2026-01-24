@@ -1,0 +1,35 @@
+TRAIN:
+  train_batch_size: 32
+  lr: 0.0003
+
+  valid_batch_size: 8
+
+  image_size: [224,224]
+
+  min_epochs: 20
+  max_epochs: 200
+  patience: 30
+  text_length: 24
+
+  device: 1
+
+  model_save_path: /raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_qata_student
+  model_save_filename: medseg
+  best_model_path: /raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_qata_student/medseg.ckpt
+  wrapper: Student
+
+MODEL:
+  bert_type: hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224
+  vision_type: facebook/convnext-tiny-224
+  project_dim: 768
+
+DATA:
+  data: QaTa
+  train_csv_path: ./data/QaTa-COV19-v2/prompt/train.csv
+  train_root_path: ./data/QaTa-COV19-v2/Train
+
+  val_csv_path: ./data/QaTa-COV19-v2/prompt/train.csv
+  val_root_path: ./data/QaTa-COV19-v2/Train
+
+  test_csv_path: ./data/QaTa-COV19-v2/prompt/test.csv
+  test_root_path: ./data/QaTa-COV19-v2/Test
