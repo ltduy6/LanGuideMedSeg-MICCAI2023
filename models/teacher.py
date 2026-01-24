@@ -4,24 +4,27 @@ from einops import rearrange, repeat
 from utils.layers import GuideDecoder
 from monai.networks.blocks.dynunet_block import UnetOutBlock
 from monai.networks.blocks.upsample import SubpixelUpsample
-from .bert import BERTModel
+from .bert import BERTModel, BiomedCLIPBERTModel
 from .vision import VisionModel
 
 class TeacherModel(nn.Module):
 
-    def __init__(self, bert_type, vision_type, project_dim=718):
+    def __init__(self, bert_type, vision_type, project_dim=718, text_length=24):
 
         super(TeacherModel, self).__init__()
 
         self.encoder = VisionModel(vision_type, project_dim)
-        self.text_encoder = BERTModel(bert_type, project_dim)
+        if bert_type == 'hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224':
+            self.text_encoder = BiomedCLIPBERTModel()
+        else:
+            self.text_encoder = BERTModel(bert_type, project_dim)
 
         self.spatial_dim = [7,14,28,56]    # 224*224
         feature_dim = [768,384,192,96]
 
-        self.decoder16 = GuideDecoder(feature_dim[0],feature_dim[1],self.spatial_dim[0],24)
-        self.decoder8 = GuideDecoder(feature_dim[1],feature_dim[2],self.spatial_dim[1],24)
-        self.decoder4 = GuideDecoder(feature_dim[2],feature_dim[3],self.spatial_dim[2],24)
+        self.decoder16 = GuideDecoder(feature_dim[0],feature_dim[1],self.spatial_dim[0],text_length)
+        self.decoder8 = GuideDecoder(feature_dim[1],feature_dim[2],self.spatial_dim[1],text_length)
+        self.decoder4 = GuideDecoder(feature_dim[2],feature_dim[3],self.spatial_dim[2],text_length)
         self.decoder1 = SubpixelUpsample(2,feature_dim[3],24,4)
         self.out = UnetOutBlock(2, in_channels=24, out_channels=1)
 
@@ -45,18 +48,24 @@ class TeacherModel(nn.Module):
         os16, refined_os32 = self.decoder16(os32,image_features[2], text_embeds)
         os8, refined_os16 = self.decoder8(os16,image_features[1], text_embeds)
         os4, refined_os8 = self.decoder4(os8,image_features[0], text_embeds)
-        os4 = rearrange(os4, 'B (H W) C -> B C H W',H=self.spatial_dim[-1],W=self.spatial_dim[-1])
+        os32 = rearrange(os32, 'B (H W) C -> B C H W',H=self.spatial_dim[0],W=self.spatial_dim[0])
+        os16 = rearrange(os16, 'B (H W) C -> B C H W',H=self.spatial_dim[1],W=self.spatial_dim[1])
+        os8 = rearrange(os8, 'B (H W) C -> B C H W',H=self.spatial_dim[2],W=self.spatial_dim[2])
+        os4 = rearrange(os4, 'B (H W) C -> B C H W',H=self.spatial_dim[3],W=self.spatial_dim[3])
         os1 = self.decoder1(os4)
 
         logits = self.out(os1)
         out = logits.sigmoid()
 
         return_info = {
+            'os32': os32,
+            'os16': os16,
+            'os8': os8,
+            'os4': os4,
+            'os1': os1,
             'refined_os32': refined_os32,
             'refined_os16': refined_os16,
             'refined_os8': refined_os8,
-            'refined_os4': os4,
-            'refined_os1': os1,
             'logits': logits,
         }
 

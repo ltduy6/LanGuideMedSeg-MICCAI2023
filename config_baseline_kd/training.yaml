@@ -7,16 +7,16 @@ TRAIN:
   image_size: [224,224]
 
   min_epochs: 20
-  max_epochs: 150
+  max_epochs: 250
   patience: 30
 
   device: 1
 
-  model_save_path: ./save_model_qata_baseline_kd
+  model_save_path: /raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_qata_baseline_kd
   model_save_filename: medseg
-  best_model_path: ./save_model_qata_baseline_kd/medseg-v5.ckpt
-  model: BaselineKD
-  mode: Training
+  best_model_path: ./save_model_qata_baseline_kd/medseg-v29.ckpt
+  wrapper: BaselineKD
+  mode: Testing
 
 TEACHER:
   teacher_model_path: ./save_model_qata_teacher/medseg-v7.ckpt

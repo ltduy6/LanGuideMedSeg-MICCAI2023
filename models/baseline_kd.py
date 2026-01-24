@@ -42,18 +42,24 @@ class BaselineKDModel(nn.Module):
         os16, refined_os32 = self.decoder16(os32,image_features[2], None)
         os8, refined_os16 = self.decoder8(os16,image_features[1], None)
         os4, refined_os8 = self.decoder4(os8,image_features[0], None)
-        os4 = rearrange(os4, 'B (H W) C -> B C H W',H=self.spatial_dim[-1],W=self.spatial_dim[-1])
+        os32 = rearrange(os32, 'B (H W) C -> B C H W',H=self.spatial_dim[0],W=self.spatial_dim[0])
+        os16 = rearrange(os16, 'B (H W) C -> B C H W',H=self.spatial_dim[1],W=self.spatial_dim[1])
+        os8 = rearrange(os8, 'B (H W) C -> B C H W',H=self.spatial_dim[2],W=self.spatial_dim[2])
+        os4 = rearrange(os4, 'B (H W) C -> B C H W',H=self.spatial_dim[3],W=self.spatial_dim[3])
         os1 = self.decoder1(os4)
 
         logits = self.out(os1)
         out = logits.sigmoid()
 
         return_info = {
+            'os32': os32,
+            'os16': os16,
+            'os8': os8,
             'refined_os32': refined_os32,
             'refined_os16': refined_os16,
             'refined_os8': refined_os8,
-            'refined_os4': os4,
-            'refined_os1': os1,
+            'os4': os4,
+            'os1': os1,
             'logits': logits
         }
 

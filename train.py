@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import DataLoader
-from utils.dataset import QaTa,MosMedPlus
+from utils.dataset import QaTa,MosMedPlus, SegmentData
 import utils.config as config
 from torch.optim import lr_scheduler
 from utils.getter import get_model
@@ -35,33 +35,21 @@ if __name__ == '__main__':
     args = get_parser()
     print("cuda:",torch.cuda.is_available())
 
-    if args.data == 'QaTa':
-        ds_train = QaTa(csv_path=args.train_csv_path,
+    ds_train = SegmentData(csv_path=args.train_csv_path,
                         root_path=args.train_root_path,
                         tokenizer=args.bert_type,
                         image_size=args.image_size,
-                        mode='train')
+                        mode='train',
+                        text_length=args.text_length,
+                        name=args.data)
 
-        ds_valid = QaTa(csv_path=args.train_csv_path,
-                        root_path=args.train_root_path,
-                        tokenizer=args.bert_type,
-                        image_size=args.image_size,
-                        mode='valid')
-    elif args.data == 'MosMedPlus':
-        ds_train = MosMedPlus(csv_path=args.train_csv_path,
-                        root_path=args.train_root_path,
-                        tokenizer=args.bert_type,
-                        image_size=args.image_size,
-                        mode='train')
-
-        ds_valid = MosMedPlus(csv_path=args.val_csv_path,
-                        root_path=args.val_root_path,
-                        tokenizer=args.bert_type,
-                        image_size=args.image_size,
-                        mode='valid')
-    else:
-        raise NotImplementedError('Dataset not implemented!')
-
+    ds_valid = SegmentData(csv_path=args.val_csv_path,
+                    root_path=args.val_root_path,
+                    tokenizer=args.bert_type,
+                    image_size=args.image_size,
+                    mode='valid',
+                    text_length=args.text_length,
+                    name=args.data)
 
     dl_train = DataLoader(ds_train, batch_size=args.train_batch_size, shuffle=True, num_workers=args.train_batch_size)
     dl_valid = DataLoader(ds_valid, batch_size=args.valid_batch_size, shuffle=False, num_workers=args.valid_batch_size)

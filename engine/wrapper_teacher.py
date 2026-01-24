@@ -1,4 +1,5 @@
 from models.teacher import TeacherModel
+from models.biomedCLIP import BiomedCLIPSeg
 from monai.losses import DiceCELoss
 from torchmetrics import Accuracy,Dice
 from torchmetrics.classification import BinaryJaccardIndex
@@ -11,6 +12,7 @@ import sys
 import numpy as np
 import datetime
 import torch.nn.functional as F
+from utils.hd95 import HD95Wrapper
 
 class TeacherWrapper(pl.LightningModule):
 
@@ -18,18 +20,25 @@ class TeacherWrapper(pl.LightningModule):
 
         super(TeacherWrapper, self).__init__()
 
-        self.model = TeacherModel(
-            args.bert_type,
-            args.vision_type,
-            args.project_dim
-        )
+        if args.model == 'languided':
+            self.model = TeacherModel(
+                args.bert_type,
+                args.vision_type,
+                args.project_dim,
+                args.text_length
+            )
+        elif args.model == 'biomedclip':
+            self.model = BiomedCLIPSeg(
+                biomedclip_hf_api=args.biomedclip_hf_api,
+                clipseg_hf_api=args.clipseg_hf_api
+            )
 
         self.lr = args.lr
         self.history = {}
         
-        self.loss_fn = nn.BCEWithLogitsLoss()
+        self.loss_fn = DiceCELoss()
 
-        metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex()}
+        metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex(),"hd95": HD95Wrapper(percentile=95, include_background=True)}
         self.train_metrics = nn.ModuleDict(metrics_dict)
         self.val_metrics = deepcopy(self.train_metrics)
         self.test_metrics = deepcopy(self.train_metrics)
@@ -51,7 +60,7 @@ class TeacherWrapper(pl.LightningModule):
     def shared_step(self,batch,batch_idx):
         x, y = batch
         preds, return_info = self(x)
-        main_loss = self.loss_fn(return_info['logits'], y.float())
+        main_loss = self.loss_fn(preds, y.float())
 
         return {
                 'loss': main_loss,

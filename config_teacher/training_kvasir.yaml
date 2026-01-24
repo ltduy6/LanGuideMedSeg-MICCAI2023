@@ -1,0 +1,34 @@
+TRAIN:
+  train_batch_size: 32
+  lr: 0.0003
+
+  valid_batch_size: 8
+
+  image_size: [224,224]
+
+  min_epochs: 20
+  max_epochs: 200
+  patience: 30
+
+  device: 1
+
+  model_save_path: /raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_kvasir_teacher
+  model_save_filename: medseg
+  best_model_path: ./save_model_kvasir_teacher/medseg.ckpt
+  model: Teacher
+
+MODEL:
+  bert_type: microsoft/BiomedVLP-CXR-BERT-specialized
+  vision_type: facebook/convnext-tiny-224
+  project_dim: 768
+
+DATA:
+  data: Kvasir
+  train_csv_path: ./data/Kvasir/prompt/train.csv
+  train_root_path: ./data/Kvasir/Train
+
+  val_csv_path: ./data/Kvasir/prompt/train.csv
+  val_root_path: ./data/Kvasir/Train
+
+  test_csv_path: ./data/Kvasir/prompt/test.csv
+  test_root_path: ./data/Kvasir/Test

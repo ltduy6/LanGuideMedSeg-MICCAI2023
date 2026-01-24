@@ -16,7 +16,7 @@ TRAIN:
   model_save_filename: medseg
   best_model_path: ./save_model_mosmed_baseline_kd/medseg.ckpt
 
-  model: BaselineKD
+  wrapper: BaselineKD
   mode: Testing
 
 TEACHER:

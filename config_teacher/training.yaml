@@ -12,10 +12,10 @@ TRAIN:
 
   device: 1
 
-  model_save_path: ./save_model_qata_teacher
+  model_save_path: /raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_qata_teacher
   model_save_filename: medseg
   best_model_path: ./save_model_qata_teacher/medseg.ckpt
-  model: Teacher
+  wrapper: Teacher
 
 MODEL:
   bert_type: microsoft/BiomedVLP-CXR-BERT-specialized
@@ -26,6 +26,9 @@ DATA:
   data: QaTa
   train_csv_path: ./data/QaTa-COV19-v2/prompt/train.csv
   train_root_path: ./data/QaTa-COV19-v2/Train
+
+  val_csv_path: ./data/QaTa-COV19-v2/prompt/train.csv
+  val_root_path: ./data/QaTa-COV19-v2/Train
 
   test_csv_path: ./data/QaTa-COV19-v2/prompt/test.csv
   test_root_path: ./data/QaTa-COV19-v2/Test

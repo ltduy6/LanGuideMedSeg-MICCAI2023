@@ -19,3 +19,5 @@ save_model_qata_baseline_kd/
 save_model_mosmed_baseline_kd/
 logs_baseline_kd_qata/
 logs_baseline_kd_mosmed/
+logs_teacher_clinic/
+logs_teacher_kvasir/

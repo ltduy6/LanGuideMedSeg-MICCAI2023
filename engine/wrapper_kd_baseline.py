@@ -41,7 +41,7 @@ class BaselineKDWrapper(pl.LightningModule):
             "multi_temperature_kd_loss": MultiTemperatureKDLoss(temps=[2.0, 3.0, 4.0, 5.0, 6.0]),
         }
 
-        metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex(),"hd95": HD95Wrapper(percentile=95, include_background=False)}
+        metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex(),"hd95": HD95Wrapper(percentile=95, include_background=True)}
         self.train_metrics = nn.ModuleDict(metrics_dict)
         self.val_metrics = deepcopy(self.train_metrics)
         self.test_metrics = deepcopy(self.train_metrics)
@@ -116,14 +116,14 @@ class BaselineKDWrapper(pl.LightningModule):
 
             distill_loss = 0
             for key in teacher_return_info:
-                if key not in ["refined_os32","refined_os16","refined_os8", "refined_os4", "refined_os1"]:
+                if key not in ["refined_os32", "refined_os16", "refined_os8","os4","os1"]:
                     continue
-                # distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p1'](teacher_return_info[key],return_info[key])
+                distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p1'](teacher_return_info[key],return_info[key])
                 distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p2'](teacher_return_info[key],return_info[key])
                 # distill_loss += self.lambda_distill * self.losses['feature_filtration_loss'](teacher_return_info[key],return_info[key])
 
             if 'logits' in teacher_return_info and 'logits' in return_info:
-                # distill_loss += self.lambda_distill * self.losses['logit_distillation_loss'](teacher_return_info['logits'], return_info['logits'])
+                distill_loss += self.lambda_distill * self.losses['logit_distillation_loss'](teacher_return_info['logits'], return_info['logits'])
                 distill_loss += self.lambda_multi_temp * self.losses['multi_temperature_kd_loss'](teacher_return_info['logits'], return_info['logits'])
 
             total_loss = main_loss + distill_loss

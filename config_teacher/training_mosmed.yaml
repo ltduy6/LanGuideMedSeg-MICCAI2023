@@ -7,16 +7,16 @@ TRAIN:
   image_size: [224,224]
 
   min_epochs: 20
-  max_epochs: 100
+  max_epochs: 200
   patience: 30
 
   device: 1
 
-  model_save_path: ./save_model_mosmed_teacher
+  model_save_path: /raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_mosmed_teacher
   model_save_filename: medseg
   best_model_path: ./save_model_mosmed_teacher/medseg.ckpt
 
-  model: Teacher
+  wrapper: Teacher
 
 MODEL:
   bert_type: microsoft/BiomedVLP-CXR-BERT-specialized
