@@ -33,8 +33,8 @@ class BaselineKDWrapper(pl.LightningModule):
 
         self.losses = {
             "segmentation_loss": DiceCELoss(),
-            "feature_distillation_loss_p1": FeatureDistillationLoss(p=1),
-            "feature_distillation_loss_p2": FeatureDistillationLoss(p=2),
+            "feature_distillation_loss_p1": FeatureDistillationLoss(p=1, distillation_type='mse'),
+            "feature_distillation_loss_p2": FeatureDistillationLoss(p=2, distillation_type='mse'),
             "feature_filtration_loss": FeatureFiltrationLoss(),
             "logit_distillation_loss": LogitDistillationLoss(temperature=4.0),
             "multi_temperature_kd_loss": MultiTemperatureKDLoss(temps=[2.0, 3.0, 4.0, 5.0, 6.0]),
@@ -109,13 +109,12 @@ class BaselineKDWrapper(pl.LightningModule):
         main_loss = self.losses['segmentation_loss'](preds,y)
 
         if self.training:
-
             with torch.no_grad():
                 teacher_preds, teacher_return_info = self.teacher_model(x)
 
             distill_loss = 0
             for key in teacher_return_info:
-                if key not in ["refined_os32", "refined_os16", "refined_os8","os4","os1"]:
+                if key not in ["refined_os32", "refined_os16", "refined_os8"]:
                     continue
                 distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p1'](teacher_return_info[key],return_info[key])
                 distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p2'](teacher_return_info[key],return_info[key])
