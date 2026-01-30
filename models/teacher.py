@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from einops import rearrange, repeat
-from utils.layers import GuideDecoder
+from utils.layers import GuideDecoder, GuideDecoderLayer
 from monai.networks.blocks.dynunet_block import UnetOutBlock
 from monai.networks.blocks.upsample import SubpixelUpsample
 from .bert import BERTModel, BiomedCLIPBERTModel
@@ -25,6 +25,7 @@ class TeacherModel(nn.Module):
         self.decoder16 = GuideDecoder(feature_dim[0],feature_dim[1],self.spatial_dim[0],text_length)
         self.decoder8 = GuideDecoder(feature_dim[1],feature_dim[2],self.spatial_dim[1],text_length)
         self.decoder4 = GuideDecoder(feature_dim[2],feature_dim[3],self.spatial_dim[2],text_length)
+        self.refinedBlock = GuideDecoderLayer(feature_dim[3], feature_dim[3], text_length)
         self.decoder1 = SubpixelUpsample(2,feature_dim[3],24,4)
         self.out = UnetOutBlock(2, in_channels=24, out_channels=1)
 
@@ -48,6 +49,7 @@ class TeacherModel(nn.Module):
         os16, refined_os32 = self.decoder16(os32,image_features[2], text_embeds)
         os8, refined_os16 = self.decoder8(os16,image_features[1], text_embeds)
         os4, refined_os8 = self.decoder4(os8,image_features[0], text_embeds)
+        os4 = self.refinedBlock(os4, text_embeds)
         os32 = rearrange(os32, 'B (H W) C -> B C H W',H=self.spatial_dim[0],W=self.spatial_dim[0])
         os16 = rearrange(os16, 'B (H W) C -> B C H W',H=self.spatial_dim[1],W=self.spatial_dim[1])
         os8 = rearrange(os8, 'B (H W) C -> B C H W',H=self.spatial_dim[2],W=self.spatial_dim[2])
