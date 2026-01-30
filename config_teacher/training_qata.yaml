@@ -7,20 +7,25 @@ TRAIN:
   image_size: [224,224]
 
   min_epochs: 20
-  max_epochs: 100
+  max_epochs: 200
   patience: 30
+  text_length: 24
 
   device: 1
 
-  model_save_path: /raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_qata_teacher
+  model_save_path: ./save_model_qata_teacher
   model_save_filename: medseg
   best_model_path: ./save_model_qata_teacher/medseg.ckpt
   wrapper: Teacher
 
 MODEL:
+  # bert_type: hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224
   bert_type: microsoft/BiomedVLP-CXR-BERT-specialized
   vision_type: facebook/convnext-tiny-224
   project_dim: 768
+  biomedclip_hf_api: hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224
+  clipseg_hf_api: CIDAS/clipseg-rd64-refined
+  model: languided
 
 DATA:
   data: QaTa

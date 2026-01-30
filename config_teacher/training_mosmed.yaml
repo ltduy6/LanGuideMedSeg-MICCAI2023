@@ -9,10 +9,11 @@ TRAIN:
   min_epochs: 20
   max_epochs: 200
   patience: 30
+  text_length: 24
 
   device: 1
 
-  model_save_path: /raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_mosmed_teacher
+  model_save_path: ./save_model_mosmed_teacher
   model_save_filename: medseg
   best_model_path: ./save_model_mosmed_teacher/medseg.ckpt
 
@@ -22,6 +23,7 @@ MODEL:
   bert_type: microsoft/BiomedVLP-CXR-BERT-specialized
   vision_type: facebook/convnext-tiny-224
   project_dim: 768
+  model: languided
 
 DATA:
   data: MosMedPlus
