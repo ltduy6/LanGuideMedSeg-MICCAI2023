@@ -31,13 +31,15 @@ class BaselineKDWrapper(pl.LightningModule):
         self.lr = args.lr
         self.history = {}
 
+        print("KD temps:", args.kd_temps)
+
         self.losses = {
             "segmentation_loss": DiceCELoss(),
             "feature_distillation_loss_p1": FeatureDistillationLoss(p=1, distillation_type='mse'),
             "feature_distillation_loss_p2": FeatureDistillationLoss(p=2, distillation_type='mse'),
             "feature_filtration_loss": FeatureFiltrationLoss(),
             "logit_distillation_loss": LogitDistillationLoss(temperature=4.0),
-            "multi_temperature_kd_loss": MultiTemperatureKDLoss(temps=[2.0, 3.0, 4.0, 5.0, 6.0]),
+            "multi_temperature_kd_loss": MultiTemperatureKDLoss(temps=args.kd_temps),
         }
 
         metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex(),"hd95": HD95Wrapper(percentile=95, include_background=True)}
@@ -113,15 +115,15 @@ class BaselineKDWrapper(pl.LightningModule):
                 teacher_preds, teacher_return_info = self.teacher_model(x)
 
             distill_loss = 0
-            for key in teacher_return_info:
-                if key not in ["refined_os32", "refined_os16", "refined_os8"]:
-                    continue
-                distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p1'](teacher_return_info[key],return_info[key])
-                distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p2'](teacher_return_info[key],return_info[key])
+            # for key in teacher_return_info:
+            #     if key not in ["os32", "os16", "os8", "os4"]:
+            #         continue
+            #     distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p1'](teacher_return_info[key],return_info[key])
+            #     distill_loss += self.lambda_distill * self.losses['feature_distillation_loss_p2'](teacher_return_info[key],return_info[key])
                 # distill_loss += self.lambda_distill * self.losses['feature_filtration_loss'](teacher_return_info[key],return_info[key])
 
             if 'logits' in teacher_return_info and 'logits' in return_info:
-                distill_loss += self.lambda_distill * self.losses['logit_distillation_loss'](teacher_return_info['logits'], return_info['logits'])
+                # distill_loss += self.lambda_distill * self.losses['logit_distillation_loss'](teacher_return_info['logits'], return_info['logits'])
                 distill_loss += self.lambda_multi_temp * self.losses['multi_temperature_kd_loss'](teacher_return_info['logits'], return_info['logits'])
 
             total_loss = main_loss + distill_loss

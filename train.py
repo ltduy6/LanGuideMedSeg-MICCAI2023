@@ -22,11 +22,16 @@ def get_parser():
                         default='./config/training.yaml',
                         type=str,
                         help='config file')
+    parser.add_argument('--temps',
+                        default='none',
+                        type=str,
+                        help='kd temps list')
 
     args = parser.parse_args()
     assert args.config is not None
     cfg = config.load_cfg_from_cfg_file(args.config)
-
+    if args.temps != 'none':
+        cfg['kd_temps'] = [float(t) for t in args.temps.strip('[]').split(',')]
     return cfg
 
 

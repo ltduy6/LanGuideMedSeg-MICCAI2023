@@ -13,18 +13,15 @@ TRAIN:
 
   device: 1
 
-  model_save_path: /raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_kvasir_teacher
+  model_save_path: /raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_kvasir_student
   model_save_filename: medseg
-  best_model_path: /raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_kvasir_teacher/medseg-v1.ckpt
-  wrapper: Teacher
+  best_model_path: /raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_kvasir_student/medseg.ckpt
+  wrapper: Student
 
 MODEL:
   bert_type: hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224
   vision_type: facebook/convnext-tiny-224
   project_dim: 768
-  biomedclip_hf_api: hf-hub:microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224
-  clipseg_hf_api: CIDAS/clipseg-rd64-refined
-  model: languided
 
 DATA:
   data: Kvasir

@@ -15,7 +15,7 @@ TRAIN:
 
   model_save_path: /raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_mosmed_student
   model_save_filename: medseg
-  best_model_path: /raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_mosmed_student/medseg.ckpt
+  best_model_path: /raid/tphung/workspace-Duy/LanGuideMedSeg-MICCAI2023/save_model_mosmed_student/medseg-v1.ckpt
   wrapper: Student
 
 MODEL:
