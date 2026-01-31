@@ -4,3 +4,5 @@ transformers==4.57.3
 monai==1.0.1  
 pandas==1.4.2  
 einops==0.4.1 
+open_clip_torch
+python==3.10.19

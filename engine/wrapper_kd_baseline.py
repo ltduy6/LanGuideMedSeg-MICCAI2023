@@ -31,15 +31,13 @@ class BaselineKDWrapper(pl.LightningModule):
         self.lr = args.lr
         self.history = {}
 
-        print("KD temps:", args.kd_temps)
-
         self.losses = {
             "segmentation_loss": DiceCELoss(),
             "feature_distillation_loss_p1": FeatureDistillationLoss(p=1, distillation_type='mse'),
             "feature_distillation_loss_p2": FeatureDistillationLoss(p=2, distillation_type='mse'),
             "feature_filtration_loss": FeatureFiltrationLoss(),
             "logit_distillation_loss": LogitDistillationLoss(temperature=4.0),
-            "multi_temperature_kd_loss": MultiTemperatureKDLoss(temps=args.kd_temps),
+            "multi_temperature_kd_loss": MultiTemperatureKDLoss(temps=args.kd_temps if hasattr(args,'kd_temps') else [2.0, 3.0, 4.0, 5.0, 6.0])
         }
 
         metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex(),"hd95": HD95Wrapper(percentile=95, include_background=True)}
