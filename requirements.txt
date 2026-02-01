@@ -7,3 +7,4 @@ einops==0.4.1
 open_clip_torch
 python==3.10.19
 numpy==1.26.4
+scipy
